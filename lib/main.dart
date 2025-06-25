@@ -151,7 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: double.infinity,
                   child: OutlinedButton.icon(
                     icon: Image.asset(
-                      'google_logo.webp',
+                      'assets/google_logo.webp',
                       width: 20,
                       height: 20,
                     ),
@@ -727,7 +727,7 @@ class RequestScreen extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 10),
                     ),
                     child: const Text(
-                      'Close',
+                      'Okay',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
@@ -771,7 +771,7 @@ class RequestScreen extends StatelessWidget {
                 Row(
                   children: [
                     Image.asset(
-                      'logo.png', // Replace with your logo asset
+                      'assets/logo.png', // Replace with your logo asset
                       width: 52,
                       height: 52,
                     ),
@@ -780,12 +780,8 @@ class RequestScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start, // Aligns to the left
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_new, size: 24, color: Color(0xFF20435C)),
-                      onPressed: () => Navigator.pop(context),
-                    ),
                     const SizedBox(width: 4),
                     const Text(
                       'Submit Request',
@@ -797,6 +793,7 @@ class RequestScreen extends StatelessWidget {
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 24),
                 Container(
                   decoration: BoxDecoration(
@@ -898,25 +895,37 @@ class RequestScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFE5E7EB),
-                      foregroundColor: Colors.black54,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
+               const SizedBox(height: 8),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                    onPressed: () {
+                    if (Navigator.canPop(context)) {
+                      Navigator.pop(context);
+                    } else {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => const MapHomeScreen()),
+                      );
+                    }
+                  }
+                  ,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFFE5E7EB),
+                        foregroundColor: Colors.black54,
+                        padding: EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(fontSize: 18),
                       ),
                     ),
-                    child: const Text(
-                      'Cancel',
-                      style: TextStyle(fontSize: 18),
-                    ),
                   ),
-                ),
+
               ],
             ),
           ),
@@ -972,13 +981,9 @@ class ProfileScreen extends StatelessWidget {
               padding: const EdgeInsets.only(left: 16, top: 8, right: 16),
               child: Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new, size: 24, color: Color(0xFF20435C)),
-                    onPressed: () => Navigator.pop(context),
-                  ),
                   const SizedBox(width: 8),
                   Image.asset(
-                    'logo.png',
+                    'assets/logo.png',
                     width: 52,
                     height: 52,
                   ),
@@ -1001,7 +1006,7 @@ class ProfileScreen extends StatelessWidget {
                   CircleAvatar(
                     radius: 38,
                     backgroundColor: const Color(0xFFF5F6FA),
-                    backgroundImage: AssetImage('avatar.png'), // Replace with your avatar asset
+                    backgroundImage: AssetImage('assets/avatar.png'), // Replace with your avatar asset
                     child: Container(),
                   ),
                   const SizedBox(height: 8),
@@ -1049,17 +1054,33 @@ class ProfileScreen extends StatelessWidget {
                   _ProfileOption(
                     icon: Icons.description_outlined,
                     text: 'Records and Certificate',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const RecordsCertificateScreen()),
+                      );
+                    },
                   ),
                   _ProfileOption(
                     icon: Icons.info_outline,
                     text: 'About Us',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AboutUsScreen()),
+                      );
+                    },
                   ),
                   _ProfileOption(
                     icon: Icons.logout,
                     text: 'Logout',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => const LoginScreen()),
+                        (route) => false,
+                      );
+                    },
                     color: Colors.red,
                   ),
                 ],
@@ -1109,35 +1130,40 @@ class PendingRequestScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 16, top: 16, right: 16),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new, size: 24, color: Color(0xFF20435C)),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const SizedBox(width: 8),
-                  Image.asset(
-                    'logo.png',
-                    width: 52,
-                    height: 52,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24),
-              child: Text(
-                'Pending Request',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF20435C),
-                ),
-              ),
-            ),
+           // Logo stays in its own row
+Padding(
+  padding: const EdgeInsets.only(left: 16, top: 16, right: 16),
+  child: Image.asset(
+    'assets/logo.png',
+    width: 52,
+    height: 52,
+  ),
+),
+
+const SizedBox(height: 8),
+
+// Back button + text in one row
+Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 16),
+  child: Row(
+    children: [
+      IconButton(
+        icon: const Icon(Icons.arrow_back_ios_new, size: 24, color: Color(0xFF20435C)),
+        onPressed: () => Navigator.pop(context),
+      ),
+      const SizedBox(width: 4),
+      const Text(
+        'Pending Request',
+        style: TextStyle(
+          fontSize: 28,
+          fontWeight: FontWeight.w600,
+          color: Color(0xFF20435C),
+        ),
+      ),
+    ],
+  ),
+),
+
             const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1375,32 +1401,33 @@ class PendingRequestDetailScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back_ios_new, size: 24, color: Color(0xFF20435C)),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                        const SizedBox(width: 8),
-                        Image.asset(
-                          'logo.png',
-                          width: 52,
-                          height: 52,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8),
-                      child: Text(
-                        'Pending Request',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF20435C),
-                        ),
+                   // Logo stays as is
+                      Image.asset(
+                        'assets/logo.png',
+                        width: 52,
+                        height: 52,
                       ),
-                    ),
+
+                      const SizedBox(height: 8),
+
+                      // Back button + Text in one row
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back_ios_new, size: 24, color: Color(0xFF20435C)),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          const SizedBox(width: 4),
+                          const Text(
+                            'Pending Request',
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF20435C),
+                            ),
+                          ),
+                        ],
+                      ),
                     const SizedBox(height: 16),
                     Container(
                       width: double.infinity,
@@ -1430,8 +1457,6 @@ class PendingRequestDetailScreen extends StatelessWidget {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
                         ),
-                        hintText: 'Transfer',
-                        hintStyle: const TextStyle(color: Colors.black87),
                       ),
                       controller: TextEditingController(text: 'Transfer'),
                     ),
@@ -1566,88 +1591,81 @@ class PendingRequestDetailScreen extends StatelessWidget {
 class PaymentScreen extends StatelessWidget {
   const PaymentScreen({super.key});
 
-  void _showPaymentSuccessDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => Center(
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            width: 320,
-            padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.10),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
+ void _showPaymentSuccessDialog(BuildContext context) {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (ctx) => Center(
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          width: 320,
+          padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF6FFF7),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.10),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+            border: Border.all(color: const Color(0xFFD6EEDD)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE2F7E7),
+                  borderRadius: BorderRadius.circular(32),
                 ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: double.infinity,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFA7F3D0),
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-                  ),
-                  child: const Center(
-                    child: Icon(Icons.check, color: Color(0xFF34D399), size: 56),
-                  ),
+                child: const Icon(Icons.check, color: Color(0xFF10B981), size: 48),
+              ),
+              const SizedBox(height: 18),
+              const Text(
+                'Payment Submitted!',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF10B981),
                 ),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 0),
-                  child: const Center(
-                    child: Text(
-                      'Payment Submitted!',
-                      style: TextStyle(
-                        color: Color(0xFF10B981),
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                      ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: 120,
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF10B981),
+                    side: const BorderSide(color: Color(0xFFD6EEDD)),
+                    backgroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                  child: const Text(
+                    'Okay',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF10B981),
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 24),
-                  child: SizedBox(
-                    width: 140,
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.of(ctx).pop(),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: const Color(0xFF10B981),
-                        side: const BorderSide(color: Color(0xFFE5E7EB)),
-                        backgroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      child: const Text(
-                        'Close',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF10B981),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -1668,7 +1686,7 @@ class PaymentScreen extends StatelessWidget {
                     Row(
                       children: [
                         Image.asset(
-                          'logo.png',
+                          'assets/logo.png',
                           width: 52,
                           height: 52,
                         ),
@@ -1834,6 +1852,396 @@ class PaymentScreen extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: _BottomNavBar(currentIndex: 2),
+    );
+  }
+}
+
+// Replace RecordsCertificateScreen with a stateful version
+class RecordsCertificateScreen extends StatefulWidget {
+  const RecordsCertificateScreen({super.key});
+
+  @override
+  State<RecordsCertificateScreen> createState() => _RecordsCertificateScreenState();
+}
+
+class _RecordsCertificateScreenState extends State<RecordsCertificateScreen> {
+  int selectedTab = 0; // 0 = Records, 1 = Certificate
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F6FA),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Center(
+            child: Container(
+              width: 370,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Logo, back button, and title (as per your latest layout)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Logo on the left
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Image.asset(
+                          'assets/logo.png',
+                          width: 52,
+                          height: 52,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Back button and Title aligned vertically
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.arrow_back_ios_new, size: 24, color: Color(0xFF20435C)),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                            const SizedBox(width: 4),
+                            const Text(
+                              'Records & Certificate',
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF20435C),
+                                height: 1.2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+                  // Tab bar
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      GestureDetector(
+                        onTap: () => setState(() => selectedTab = 0),
+                        child: Column(
+                          children: [
+                            Text(
+                              'Records',
+                              style: TextStyle(
+                                fontWeight: selectedTab == 0 ? FontWeight.w600 : FontWeight.w400,
+                                fontSize: 16,
+                                color: selectedTab == 0 ? const Color(0xFF20435C) : Colors.black54,
+                              ),
+                            ),
+                            if (selectedTab == 0)
+                              Container(
+                                margin: const EdgeInsets.only(top: 2),
+                                height: 2,
+                                width: 60,
+                                color: const Color(0xFF20435C),
+                              ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 32),
+                      GestureDetector(
+                        onTap: () => setState(() => selectedTab = 1),
+                        child: Column(
+                          children: [
+                            Text(
+                              'Certificate',
+                              style: TextStyle(
+                                fontWeight: selectedTab == 1 ? FontWeight.w600 : FontWeight.w400,
+                                fontSize: 16,
+                                color: selectedTab == 1 ? const Color(0xFF20435C) : Colors.black54,
+                              ),
+                            ),
+                            if (selectedTab == 1)
+                              Container(
+                                margin: const EdgeInsets.only(top: 2),
+                                height: 2,
+                                width: 80,
+                                color: const Color(0xFF20435C),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  // Content area
+                  if (selectedTab == 0) ...[
+                    // Records form (as before)
+                    TextField(
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Type',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      controller: TextEditingController(text: 'Transfer'),
+                    ),
+                    const SizedBox(height: 18),
+                    const Text(
+                      'Deceased  Information',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                        color: Color(0xFF20435C),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    // Full Name
+                    TextField(
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Full Name',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      controller: TextEditingController(text: 'Jobert Manabots X.'),
+                    ),
+                    const SizedBox(height: 12),
+                    // Age
+                    TextField(
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Age',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      controller: TextEditingController(text: '34'),
+                    ),
+                    const SizedBox(height: 12),
+                    // Date of Born
+                    TextField(
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Date of Born',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      controller: TextEditingController(text: 'April 27, 1977'),
+                    ),
+                    const SizedBox(height: 12),
+                    // Date Died
+                    TextField(
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Date Died',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      controller: TextEditingController(text: 'April 19, 2012'),
+                    ),
+                    const SizedBox(height: 12),
+                    // Residency
+                    TextField(
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Residency',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      controller: TextEditingController(text: 'Ohio, Mexico Pampanga'),
+                    ),
+                    const SizedBox(height: 12),
+                    // Informant Name
+                    TextField(
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Informant Name',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      controller: TextEditingController(text: 'Antique Amor'),
+                    ),
+                    const SizedBox(height: 18),
+                    const Text(
+                      'Uploaded Files',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        color: Color(0xFF20435C),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Color(0xFFD1D5DB), style: BorderStyle.solid, width: 1),
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.white,
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.picture_as_pdf, color: Colors.red, size: 28),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () {},
+                            child: const Text(
+                              'BirthCert.pdf',
+                              style: TextStyle(
+                                color: Color(0xFF20435C),
+                                decoration: TextDecoration.underline,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ] else ...[
+                    // Certificate tab: show large gray box
+                    Container(
+                      width: double.infinity,
+                      height: 350,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      bottomNavigationBar: const _BottomNavBar(currentIndex: 2),
+    );
+  }
+}
+
+// Add AboutUsScreen widget
+class AboutUsScreen extends StatelessWidget {
+  const AboutUsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F6FA),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Center(
+            child: Container(
+              width: 370,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Logo, back button, and title
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Image.asset(
+                          'assets/logo.png',
+                          width: 52,
+                          height: 52,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.arrow_back_ios_new, size: 24, color: Color(0xFF20435C)),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                            const SizedBox(width: 4),
+                            const Text(
+                              'About Us',
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF20435C),
+                                height: 1.2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  // About content
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'RestEase',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF20435C),
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          'RestEase is dedicated to providing a seamless and respectful experience for managing memorial records and certificates. Our mission is to help families and communities with easy access to important information and services, all in one place.',
+                          style: TextStyle(fontSize: 16, color: Colors.black87, height: 1.4),
+                        ),
+                        SizedBox(height: 18),
+                        Text(
+                          'Contact Us:',
+                          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: Color(0xFF20435C)),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Email: support@restease.com\nPhone: +1 234 567 8900',
+                          style: TextStyle(fontSize: 15, color: Colors.black87),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      bottomNavigationBar: const _BottomNavBar(currentIndex: 2),
     );
   }
 }
