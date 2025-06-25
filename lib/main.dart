@@ -770,30 +770,32 @@ class RequestScreen extends StatelessWidget {
               children: [
                 Row(
                   children: [
+                    Image.asset(
+                      'logo.png', // Replace with your logo asset
+                      width: 52,
+                      height: 52,
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
                     IconButton(
                       icon: const Icon(Icons.arrow_back_ios_new, size: 24, color: Color(0xFF20435C)),
                       onPressed: () => Navigator.pop(context),
                     ),
-                    const SizedBox(width: 8),
-                    Image.asset(
-                      'logo.png', // Replace with your logo asset
-                      width: 36,
-                      height: 36,
+                    const SizedBox(width: 4),
+                    const Text(
+                      'Submit Request',
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF20435C),
+                      ),
                     ),
-                    const SizedBox(width: 8),
-                    
                   ],
-                ),
-                const SizedBox(height: 16),
-                const Center(
-                  child: Text(
-                    'Submit Request',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF20435C),
-                    ),
-                  ),
                 ),
                 const SizedBox(height: 24),
                 Container(
@@ -977,17 +979,8 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(width: 8),
                   Image.asset(
                     'logo.png',
-                    width: 36,
-                    height: 36,
-                  ),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'My Profile',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 22,
-                      color: Color(0xFF20435C),
-                    ),
+                    width: 52,
+                    height: 52,
                   ),
                 ],
               ),
@@ -996,10 +989,19 @@ class ProfileScreen extends StatelessWidget {
             Center(
               child: Column(
                 children: [
+                  const Text(
+                    'My Profile',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 22,
+                      color: Color(0xFF20435C),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   CircleAvatar(
                     radius: 38,
                     backgroundColor: const Color(0xFFF5F6FA),
-                    backgroundImage: AssetImage('assets/avatar.png'), // Replace with your avatar asset
+                    backgroundImage: AssetImage('avatar.png'), // Replace with your avatar asset
                     child: Container(),
                   ),
                   const SizedBox(height: 8),
@@ -1037,7 +1039,12 @@ class ProfileScreen extends StatelessWidget {
                   _ProfileOption(
                     icon: Icons.receipt_long,
                     text: 'Pending Request and Payment',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const PendingRequestScreen()),
+                      );
+                    },
                   ),
                   _ProfileOption(
                     icon: Icons.description_outlined,
@@ -1086,6 +1093,747 @@ class _ProfileOption extends StatelessWidget {
       ),
       trailing: text == 'Logout' ? null : const Icon(Icons.chevron_right, color: Colors.black38),
       onTap: onTap,
+    );
+  }
+}
+
+// Add PendingRequestScreen widget
+class PendingRequestScreen extends StatelessWidget {
+  const PendingRequestScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F6FA),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 16, top: 16, right: 16),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new, size: 24, color: Color(0xFF20435C)),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  const SizedBox(width: 8),
+                  Image.asset(
+                    'logo.png',
+                    width: 52,
+                    height: 52,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                'Pending Request',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF20435C),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                children: [
+                  _PendingRequestCard(
+                    status: 'Request Pending',
+                    statusColor: Colors.red,
+                    type: 'Transfer',
+                    buttonText: 'View',
+                    buttonColor: const Color(0xFFB0C4D9),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const PendingRequestDetailScreen()),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  _PendingRequestCard(
+                    status: 'Request Approve',
+                    statusColor: Colors.green,
+                    type: 'Internment',
+                    buttonText: 'Pay',
+                    buttonColor: const Color(0xFF4285F4),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const PaymentScreen()),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: _BottomNavBar(currentIndex: 2),
+    );
+  }
+}
+
+class _PendingRequestCard extends StatelessWidget {
+  final String status;
+  final Color statusColor;
+  final String type;
+  final String buttonText;
+  final Color buttonColor;
+  final VoidCallback onPressed;
+
+  const _PendingRequestCard({
+    required this.status,
+    required this.statusColor,
+    required this.type,
+    required this.buttonText,
+    required this.buttonColor,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: const BorderSide(color: Color(0xFFE0E0E0)),
+      ),
+      elevation: 0,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    status,
+                    style: TextStyle(
+                      color: statusColor,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  RichText(
+                    text: TextSpan(
+                      text: 'Type: ',
+                      style: const TextStyle(
+                        color: Colors.black54,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                      children: [
+                        TextSpan(
+                          text: type,
+                          style: const TextStyle(
+                            color: Colors.black87,
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ElevatedButton(
+              onPressed: onPressed,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: buttonColor,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                elevation: 0,
+              ),
+              child: Text(
+                buttonText,
+                style: const TextStyle(fontSize: 16),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Add PendingRequestDetailScreen widget
+class PendingRequestDetailScreen extends StatelessWidget {
+  const PendingRequestDetailScreen({super.key});
+
+  void _showCancelConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Center(
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            width: 320,
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 18),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.10),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF9C7C7),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: const Icon(Icons.close, color: Colors.red, size: 44),
+                ),
+                const SizedBox(height: 18),
+                const Text(
+                  'Are you sure you want to\ncancel your request?',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.red,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(ctx).pop();
+                        // Add your cancel logic here
+                        Navigator.of(context).pop(); // Go back after cancel
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF4285F4),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 10),
+                      ),
+                      child: const Text('Confirm'),
+                    ),
+                    const SizedBox(width: 12),
+                    OutlinedButton(
+                      onPressed: () {
+                        Navigator.of(ctx).pop();
+                      },
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.black54,
+                        side: const BorderSide(color: Color(0xFFD1D5DB)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                      ),
+                      child: const Text('Go Back'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F6FA),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Center(
+              child: Container(
+                width: 370,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back_ios_new, size: 24, color: Color(0xFF20435C)),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                        const SizedBox(width: 8),
+                        Image.asset(
+                          'logo.png',
+                          width: 52,
+                          height: 52,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      child: Text(
+                        'Pending Request',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF20435C),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF6DB),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFFFDE68A)),
+                      ),
+                      child: const Text(
+                        'Your request is still pending please wait...',
+                        style: TextStyle(
+                          color: Color(0xFFB08900),
+                          fontSize: 16,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    // Type
+                    TextField(
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Type',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        hintText: 'Transfer',
+                        hintStyle: const TextStyle(color: Colors.black87),
+                      ),
+                      controller: TextEditingController(text: 'Transfer'),
+                    ),
+                    const SizedBox(height: 18),
+                    const Text(
+                      'Deceased  Information',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                        color: Color(0xFF20435C),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    // Full Name
+                    TextField(
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Full Name',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      controller: TextEditingController(text: 'Jobert Manabots X.'),
+                    ),
+                    const SizedBox(height: 12),
+                    // Age
+                    TextField(
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Age',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      controller: TextEditingController(text: '34'),
+                    ),
+                    const SizedBox(height: 12),
+                    // Date of Born
+                    TextField(
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Date of Born',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      controller: TextEditingController(text: 'April 27, 1977'),
+                    ),
+                    const SizedBox(height: 12),
+                    // Date Died
+                    TextField(
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Date Died',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      controller: TextEditingController(text: 'April 19, 2012'),
+                    ),
+                    const SizedBox(height: 12),
+                    // Residency
+                    TextField(
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Residency',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      controller: TextEditingController(text: 'Ohio, Mexico Pampanga'),
+                    ),
+                    const SizedBox(height: 12),
+                    // Informant Name
+                    TextField(
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Informant Name',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      controller: TextEditingController(text: 'Antique Amor'),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          _showCancelConfirmation(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFF9C7C7),
+                          foregroundColor: Colors.red,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          'Cancel Request',
+                          style: TextStyle(fontSize: 16, color: Colors.red),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      bottomNavigationBar: _BottomNavBar(currentIndex: 2),
+    );
+  }
+}
+
+// Add the PaymentScreen widget
+class PaymentScreen extends StatelessWidget {
+  const PaymentScreen({super.key});
+
+  void _showPaymentSuccessDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => Center(
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            width: 320,
+            padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.10),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: double.infinity,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFA7F3D0),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.check, color: Color(0xFF34D399), size: 56),
+                  ),
+                ),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 0),
+                  child: const Center(
+                    child: Text(
+                      'Payment Submitted!',
+                      style: TextStyle(
+                        color: Color(0xFF10B981),
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 24),
+                  child: SizedBox(
+                    width: 140,
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF10B981),
+                        side: const BorderSide(color: Color(0xFFE5E7EB)),
+                        backgroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      child: const Text(
+                        'Close',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF10B981),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F6FA),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Center(
+              child: Container(
+                width: 370,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Logo
+                    Row(
+                      children: [
+                        Image.asset(
+                          'logo.png',
+                          width: 52,
+                          height: 52,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    // Back arrow and title
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back_ios_new, size: 24, color: Color(0xFF20435C)),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                        const SizedBox(width: 8),
+                        const Expanded(
+                          child: Text(
+                            'Payment',
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF20435C),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        SizedBox(width: 32), // for symmetry
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    // Niche Id
+                    TextField(
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Niche Id',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      controller: TextEditingController(text: '1F-01FB'),
+                    ),
+                    const SizedBox(height: 12),
+                    // Type
+                    TextField(
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Type',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      controller: TextEditingController(text: 'Transfer'),
+                    ),
+                    const SizedBox(height: 12),
+                    // Payee Name
+                    TextField(
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Payee Name',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      controller: TextEditingController(text: 'Josephine Damdam Y.'),
+                    ),
+                    const SizedBox(height: 18),
+                    // Upload Receipt label
+                    const Text(
+                      'Upload Receipt',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        color: Color(0xFF20435C),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Upload Receipt box
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Color(0xFFD1D5DB),
+                          style: BorderStyle.solid,
+                          width: 1,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.white,
+                        // Dashed border not natively supported, so use solid for now
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Upload Receipt here',
+                            style: TextStyle(color: Color(0xFF6B7280)),
+                          ),
+                          GestureDetector(
+                            onTap: () {},
+                            child: const Text(
+                              'choose files',
+                              style: TextStyle(
+                                color: Color(0xFF20435C),
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    // Submit button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          _showPaymentSuccessDialog(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFB0C4D9),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                        child: const Text(
+                          'Submit',
+                          style: TextStyle(fontSize: 18),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    // Cancel button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFE5E7EB),
+                          foregroundColor: Colors.black54,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(fontSize: 18),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      bottomNavigationBar: _BottomNavBar(currentIndex: 2),
     );
   }
 }
