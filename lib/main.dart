@@ -31,7 +31,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Future.delayed(const Duration(seconds: 2), () {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        MaterialPageRoute(builder: (context) => const WelcomeScreen()),
       );
     });
   }
@@ -70,6 +70,120 @@ class _SplashScreenState extends State<SplashScreen> {
       ),
     );
   }
+}
+
+// WelcomeScreen widget
+class WelcomeScreen extends StatelessWidget {
+  const WelcomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Column(
+        children: [
+          // Top blue gradient (about 55% of the screen)
+          Container(
+            width: double.infinity,
+            height: size.height * 0.55,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFF7B97B6),
+                  Color(0xFFB0C4D9),
+                ],
+              ),
+            ),
+          ),
+          // Bottom white area with centered content
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 32),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      'RestEase',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24),
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(text: 'Honored. ', style: TextStyle(color: Colors.black87)),
+                          TextSpan(text: 'Remembered.', style: TextStyle(color: Color(0xFF20435C))),
+                          TextSpan(text: ' Rest', style: TextStyle(color: Colors.black87)),
+                        ],
+                        style: TextStyle(fontSize: 16, height: 1.4),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 48),
+                Center(
+                  child: SizedBox(
+                    width: 170,
+                    height: 40,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => const LoginScreen()),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF20435C),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text('Get Started', style: TextStyle(fontSize: 15)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Custom clipper for the wave
+class _WaveClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    path.lineTo(0, size.height - 20);
+    path.quadraticBezierTo(size.width * 0.25, size.height, size.width * 0.5, size.height - 10);
+    path.quadraticBezierTo(size.width * 0.75, size.height - 30, size.width, size.height - 10);
+    path.lineTo(size.width, 0);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
 class LoginScreen extends StatefulWidget {
@@ -464,9 +578,9 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
           ),
           // Draggable bottom sheet for details
           DraggableScrollableSheet(
-            initialChildSize: 0.10,
-            minChildSize: 0.10,
-            maxChildSize: 0.35,
+           initialChildSize: 0.10, // Start at 25% of the screen height
+            minChildSize: 0.10,     // Minimum height (12%)
+            maxChildSize: 0.5,  
             builder: (context, scrollController) {
               if (selectedNicheId == null) {
                 return Container(
@@ -937,12 +1051,13 @@ class RequestScreen extends StatelessWidget {
                     ),
                     items: const [
                       DropdownMenuItem(value: 'Transfer', child: Text('Transfer')),
-                      DropdownMenuItem(value: 'New', child: Text('New')),
+                      DropdownMenuItem(value: 'Interment', child: Text('Internment')),
                     ],
                     onChanged: (v) {},
                   ),
                 ),
                 const SizedBox(height: 24),
+                // Replace the _RequestField widgets with editable TextFields
                 const Text(
                   'Deceased Information',
                   style: TextStyle(
@@ -952,18 +1067,74 @@ class RequestScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                _RequestField(label: 'Full Name', value: 'Jobert Manabots X.'),
+                TextField(
+                  decoration: InputDecoration(
+                    labelText: 'Full Name',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 12),
-                _RequestField(label: 'Age', value: '34'),
+                TextField(
+                  decoration: InputDecoration(
+                    labelText: 'Age',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                  keyboardType: TextInputType.number,
+                ),
                 const SizedBox(height: 12),
-                _RequestField(label: 'Date of Born', value: 'April 27, 1977'),
+                TextField(
+                  decoration: InputDecoration(
+                    labelText: 'Date of Born',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 12),
-                _RequestField(label: 'Date Died', value: 'April 19, 2012'),
+                TextField(
+                  decoration: InputDecoration(
+                    labelText: 'Date Died',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 12),
-                _RequestField(label: 'Residency', value: 'Ohio, Mexico Pampanga'),
+                TextField(
+                  decoration: InputDecoration(
+                    labelText: 'Residency',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 12),
-                _RequestField(label: 'Informant Name', value: 'Antique Amor'),
+                TextField(
+                  decoration: InputDecoration(
+                    labelText: 'Informant Name',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 20),
+                // ...existing code...
                 const Text(
                   'Upload Files',
                   style: TextStyle(
@@ -1125,7 +1296,7 @@ class ProfileScreen extends StatelessWidget {
                     'My Profile',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      fontSize: 22,
+                      fontSize: 28,
                       color: Color(0xFF20435C),
                     ),
                   ),
@@ -1291,7 +1462,7 @@ Padding(
   ),
 ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 16), 
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
@@ -1718,81 +1889,83 @@ class PendingRequestDetailScreen extends StatelessWidget {
 class PaymentScreen extends StatelessWidget {
   const PaymentScreen({super.key});
 
- void _showPaymentSuccessDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (ctx) => Center(
-      child: Material(
-        color: Colors.transparent,
-        child: Container(
-          width: 320,
-          padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF6FFF7),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.10),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-            border: Border.all(color: const Color(0xFFD6EEDD)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE2F7E7),
-                  borderRadius: BorderRadius.circular(32),
-                ),
-                child: const Icon(Icons.check, color: Color(0xFF10B981), size: 48),
-              ),
-              const SizedBox(height: 18),
-              const Text(
-                'Payment Submitted!',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF10B981),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: 120,
-                child: OutlinedButton(
-                  onPressed: () => Navigator.of(ctx).pop(),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF10B981),
-                    side: const BorderSide(color: Color(0xFFD6EEDD)),
-                    backgroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+  void _showPaymentSuccessDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return Center(
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              width: 320,
+              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF6FFF7),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.10),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
                   ),
-                  child: const Text(
-                    'Okay',
+                ],
+                border: Border.all(color: const Color(0xFFD6EEDD)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE2F7E7),
+                      borderRadius: BorderRadius.circular(32),
+                    ),
+                    child: const Icon(Icons.check, color: Color(0xFF10B981), size: 48),
+                  ),
+                  const SizedBox(height: 18),
+                  const Text(
+                    'Payment Submitted!',
                     style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
                       color: Color(0xFF10B981),
                     ),
+                    textAlign: TextAlign.center,
                   ),
-                ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: 120,
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF10B981),
+                        side: const BorderSide(color: Color(0xFFD6EEDD)),
+                        backgroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                      ),
+                      child: const Text(
+                        'Okay',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF10B981),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
-    ),
-  );
-}
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1827,7 +2000,7 @@ class PaymentScreen extends StatelessWidget {
                           icon: const Icon(Icons.arrow_back_ios_new, size: 24, color: Color(0xFF20435C)),
                           onPressed: () => Navigator.pop(context),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 4),
                         const Expanded(
                           child: Text(
                             'Payment',
@@ -1839,7 +2012,6 @@ class PaymentScreen extends StatelessWidget {
                             textAlign: TextAlign.center,
                           ),
                         ),
-                        SizedBox(width: 32), // for symmetry
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -2007,7 +2179,7 @@ class _RecordsCertificateScreenState extends State<RecordsCertificateScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Logo, back button, and title (as per your latest layout)
+                  // Logo, back button, and title
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -2243,13 +2415,120 @@ class _RecordsCertificateScreenState extends State<RecordsCertificateScreen> {
                       ),
                     ),
                   ] else ...[
-                    // Certificate tab: show large gray box
-                    Container(
-                      width: double.infinity,
-                      height: 350,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(10),
+                    // Certificate tab: show a styled certificate
+                    Center(
+                      child: Container(
+                        width: double.infinity,
+                        constraints: BoxConstraints(minHeight: 350),
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Color(0xFF20435C), width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.06),
+                              blurRadius: 8,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            // Logo and app name
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Image.asset(
+                                  'assets/logo.png',
+                                  width: 40,
+                                  height: 40,
+                                ),
+                                const SizedBox(width: 10),
+                                const Text(
+                                  'RestEase',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                    color: Color(0xFF20435C),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 18),
+                            const Text(
+                              'Certificate of Interment',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF20435C),
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 18),
+                            const Text(
+                              'This is to certify that',
+                              style: TextStyle(fontSize: 16, color: Colors.black87),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Jobert Manabots X.',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF20435C),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'has been interred in niche',
+                              style: TextStyle(fontSize: 16, color: Colors.black87),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Niche ID: 1F-01A',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFF20435C),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Date of Interment: April 27, 1977',
+                              style: TextStyle(fontSize: 16, color: Colors.black87),
+                            ),
+                            const SizedBox(height: 18),
+                            const Divider(thickness: 1.2, color: Color(0xFF20435C)),
+                            const SizedBox(height: 18),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: const [
+                                    Text('Date Issued:', style: TextStyle(fontSize: 14, color: Colors.black54)),
+                                    SizedBox(height: 4),
+                                    Text('April 27, 2024', style: TextStyle(fontSize: 15, color: Colors.black87)),
+                                  ],
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: const [
+                                    Text('Authorized Signature', style: TextStyle(fontSize: 14, color: Colors.black54)),
+                                    SizedBox(height: 18),
+                                    SizedBox(
+                                      width: 100,
+                                      child: Divider(thickness: 1, color: Colors.black38),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -2333,31 +2612,103 @@ class AboutUsScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: const Column(
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                      children: const [
                         Text(
-                          'RestEase',
+                          'Who we are',
                           style: TextStyle(
-                            fontSize: 22,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF20435C),
+                            fontSize: 15,
+                            color: Colors.black87,
                           ),
                         ),
-                        SizedBox(height: 10),
+                        SizedBox(height: 6),
                         Text(
-                          'RestEase is dedicated to providing a seamless and respectful experience for managing memorial records and certificates. Our mission is to help families and communities with easy access to important information and services, all in one place.',
-                          style: TextStyle(fontSize: 16, color: Colors.black87, height: 1.4),
+                          'RestEase is an innovative online ossuary vault management system designed to streamline record-keeping, certificate issuance, and renewal processes for the Municipal Planning and Development Offices of Padre Garcia, Batangas. It simplifies tracking vaults, renewals, and documents while providing a front-view vault mapping feature for easy reference without the need for real-world tracking.',
+                          style: TextStyle(fontSize: 15, color: Colors.black87, height: 1.5),
                         ),
                         SizedBox(height: 18),
                         Text(
-                          'Contact Us:',
-                          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: Color(0xFF20435C)),
+                          'Our Mission',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                            color: Colors.black87,
+                          ),
                         ),
-                        SizedBox(height: 4),
+                        SizedBox(height: 6),
                         Text(
-                          'Email: support@restease.com\nPhone: +1 234 567 8900',
-                          style: TextStyle(fontSize: 15, color: Colors.black87),
+                          'To make cemetery and vault management easier, faster, and more transparent through digital tools.',
+                          style: TextStyle(fontSize: 15, color: Colors.black87, height: 1.5),
+                        ),
+                        SizedBox(height: 18),
+                        Text(
+                          'Our Vision',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        SizedBox(height: 6),
+                        Text(
+                          'A future where cemetery records are fully digital, reducing stress and saving time for both offices and families.',
+                          style: TextStyle(fontSize: 15, color: Colors.black87, height: 1.5),
+                        ),
+                        SizedBox(height: 18),
+                        Text(
+                          'What We Offer',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        SizedBox(height: 6),
+                        Padding(
+                          padding: EdgeInsets.only(left: 8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('• ', style: TextStyle(fontSize: 16)),
+                                  Expanded(child: Text('Easy vault search and map view', style: TextStyle(fontSize: 15, color: Colors.black87))),
+                                ],
+                              ),
+                              SizedBox(height: 2),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('• ', style: TextStyle(fontSize: 16)),
+                                  Expanded(child: Text('Digital certificate issuance and renewal', style: TextStyle(fontSize: 15, color: Colors.black87))),
+                                ],
+                              ),
+                              SizedBox(height: 2),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('• ', style: TextStyle(fontSize: 16)),
+                                  Expanded(child: Text('Organized record-keeping', style: TextStyle(fontSize: 15, color: Colors.black87))),
+                                ],
+                              ),
+                              SizedBox(height: 2),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('• ', style: TextStyle(fontSize: 16)),
+                                  Expanded(child: Text('Secure and centralized data', style: TextStyle(fontSize: 15, color: Colors.black87))),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 18),
+                        Text(
+                          'RestEase is committed to transforming how cemetery and ossuary vault records are managed. By integrating modern technology into traditional processes, we eliminate inefficiencies and ensure that every record is well-documented, easily accessible, and securely stored.',
+                          style: TextStyle(fontSize: 15, color: Colors.black87, height: 1.5),
                         ),
                       ],
                     ),
