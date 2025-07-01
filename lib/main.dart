@@ -32,7 +32,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Future.delayed(const Duration(seconds: 2), () {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+        MaterialPageRoute(builder: (context) => const WelcomeImageScreen()),
       );
     });
   }
@@ -73,73 +73,30 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 }
 
-// WelcomeScreen widget
-class WelcomeScreen extends StatelessWidget {
-  const WelcomeScreen({super.key});
+// WelcomeImageScreen widget
+class WelcomeImageScreen extends StatelessWidget {
+  const WelcomeImageScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
+      body: Stack(
         children: [
-          // Top blue gradient (about 55% of the screen)
-          Container(
-            width: double.infinity,
-            height: size.height * 0.55,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFF7B97B6),
-                  Color(0xFFB0C4D9),
-                ],
-              ),
+          Positioned.fill(
+            child: Image.asset(
+              'assets/welcome.png',
+              fit: BoxFit.cover,
             ),
           ),
-          // Bottom white area with centered content
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 32),
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24),
-                    child: Text(
-                      'RestEase',
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24),
-                    child: Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(text: 'Honored. ', style: TextStyle(color: Colors.black87)),
-                          TextSpan(text: 'Remembered.', style: TextStyle(color: Color(0xFF20435C))),
-                          TextSpan(text: ' Rest', style: TextStyle(color: Colors.black87)),
-                        ],
-                        style: TextStyle(fontSize: 16, height: 1.4),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 48),
-                Center(
-                  child: SizedBox(
+          Align(
+            alignment: Alignment.bottomLeft,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 32, right: 32, bottom: 64),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  SizedBox(
                     width: 170,
                     height: 40,
                     child: ElevatedButton(
@@ -160,31 +117,14 @@ class WelcomeScreen extends StatelessWidget {
                       child: const Text('Get Started', style: TextStyle(fontSize: 15)),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
       ),
     );
   }
-}
-
-// Custom clipper for the wave
-class _WaveClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final path = Path();
-    path.lineTo(0, size.height - 20);
-    path.quadraticBezierTo(size.width * 0.25, size.height, size.width * 0.5, size.height - 10);
-    path.quadraticBezierTo(size.width * 0.75, size.height - 30, size.width, size.height - 10);
-    path.lineTo(size.width, 0);
-    path.close();
-    return path;
-  }
-
-  @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
 class LoginScreen extends StatefulWidget {
@@ -242,52 +182,35 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     return Scaffold(
-      backgroundColor: const Color(0xFF20435C),
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // Top and bottom blue background
+          // Background image
           Positioned.fill(
-            child: Container(
-              color: const Color(0xFF20435C),
+            child: Image.asset(
+              'assets/loginbg.png',
+              fit: BoxFit.cover,
             ),
           ),
-          // White card with custom border radius and blue accent
-          Align(
-            alignment: Alignment.center,
+          // Centered login form in the white area
+          Center(
             child: SingleChildScrollView(
-              child: Container(
-                width: 350,
-                padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(80),
-                    bottomRight: Radius.circular(80),
-                  ),
-                  border: Border.all(
-                    color: const Color(0xFF94B2CC),
-                    width: 5,
-                  ),
-                ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    const SizedBox(height: 56), // Space above logo
                     // Logo
-                    const SizedBox(height: 8),
-                    Image.asset(
-                      'assets/logo.png',
-                      width: 90,
-                      height: 60,
-                    ),
-                    const SizedBox(height: 18),
-                    // Login title
-                    const Text(
-                      'Login',
-                      style: TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF20435C),
+                    Center(
+                      child: Image.asset(
+                        'assets/logo.png',
+                        width: 120,
+                        height: 60,
+                        fit: BoxFit.contain,
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -298,14 +221,16 @@ class _LoginScreenState extends State<LoginScreen> {
                         labelText: 'Email',
                         labelStyle: const TextStyle(color: Color(0xFF8CAFC9)),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                          borderSide: const BorderSide(color: Color(0xFF8CAFC9), width: 1.5),
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF8CAFC9), width: 1.2),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(color: Color(0xFF20435C), width: 2),
                         ),
-                        contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                        filled: true,
+                        fillColor: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -317,14 +242,16 @@ class _LoginScreenState extends State<LoginScreen> {
                         labelText: 'Password',
                         labelStyle: const TextStyle(color: Color(0xFF8CAFC9)),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                          borderSide: const BorderSide(color: Color(0xFF8CAFC9), width: 1.5),
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF8CAFC9), width: 1.2),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(color: Color(0xFF20435C), width: 2),
                         ),
-                        contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                        filled: true,
+                        fillColor: Colors.white,
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword ? Icons.visibility_off : Icons.visibility,
@@ -338,7 +265,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     // Remember Me and Forgot Password
                     Row(
                       children: [
@@ -372,7 +299,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 16),
                     // Error message
                     if (_errorMessage != null)
                       Padding(
@@ -392,7 +319,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           backgroundColor: const Color(0xFF94B2CC),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(6),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           elevation: 0,
                         ),
@@ -408,7 +335,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 18),
                     // Divider with or
                     Row(
                       children: const [
@@ -420,8 +347,28 @@ class _LoginScreenState extends State<LoginScreen> {
                         Expanded(child: Divider()),
                       ],
                     ),
-                    
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 18),
+                    // Google sign in button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 44,
+                      child: OutlinedButton.icon(
+                        onPressed: () {},
+                        icon: Image.asset('assets/google_logo.webp', width: 22, height: 22),
+                        label: const Text(
+                          'Sign in with google',
+                          style: TextStyle(color: Color(0xFF6B7280), fontSize: 16),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFFD1D5DB)),
+                          backgroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
                     // Sign up link
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -446,23 +393,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 32), // Space at the bottom
                   ],
-                ),
-              ),
-            ),
-          ),
-          // Bottom blue accent curve
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              height: 40,
-              decoration: const BoxDecoration(
-                color: Color(0xFF20435C),
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(60),
-                  topRight: Radius.circular(60),
                 ),
               ),
             ),
@@ -569,54 +501,37 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     return Scaffold(
-      backgroundColor: const Color(0xFF20435C),
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // Background curve
-          Positioned(
-            left: 0,
-            top: 0,
-            child: Container(
-              width: size.width,
-              height: size.height * 0.25,
-              decoration: const BoxDecoration(
-                color: Color(0xFF20435C),
-                borderRadius: BorderRadius.only(
-                  bottomRight: Radius.circular(120),
-                ),
-              ),
+          // Background image
+          Positioned.fill(
+            child: Image.asset(
+              'assets/loginbg.png',
+              fit: BoxFit.cover,
             ),
           ),
-          Align(
-            alignment: Alignment.center,
+          Center(
             child: SingleChildScrollView(
-              child: Container(
-                width: 350,
-                padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(80),
-                    bottomRight: Radius.circular(80),
-                  ),
-                  border: Border.all(
-                    color: const Color(0xFF94B2CC),
-                    width: 5,
-                  ),
-                ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Sign Up',
-                      style: TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF20435C),
+                    const SizedBox(height: 56), // Space above title
+                    // Title instead of logo
+                    const Center(
+                      child: Text(
+                        'Sign Up',
+                        style: TextStyle(
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF20435C),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 32),
                     Row(
                       children: [
                         Expanded(
@@ -624,11 +539,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             controller: _firstNameController,
                             decoration: InputDecoration(
                               labelText: 'First name',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(6),
+                              labelStyle: const TextStyle(color: Color(0xFF8CAFC9)),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: Color(0xFF8CAFC9), width: 1.2),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: Color(0xFF8CAFC9), width: 2),
                               ),
                               isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+                              contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                              filled: true,
+                              fillColor: Colors.white,
                             ),
                           ),
                         ),
@@ -638,52 +561,84 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             controller: _lastNameController,
                             decoration: InputDecoration(
                               labelText: 'Last name',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(6),
+                              labelStyle: const TextStyle(color: Color(0xFF8CAFC9)),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: Color(0xFF8CAFC9), width: 1.2),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: Color(0xFF8CAFC9), width: 2),
                               ),
                               isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+                              contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                              filled: true,
+                              fillColor: Colors.white,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     TextField(
                       controller: _emailController,
                       decoration: InputDecoration(
                         labelText: 'Email Address',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
+                        labelStyle: const TextStyle(color: Color(0xFF8CAFC9)),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF8CAFC9), width: 1.2),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF8CAFC9), width: 2),
                         ),
                         isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                        filled: true,
+                        fillColor: Colors.white,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     TextField(
                       controller: _contactController,
                       decoration: InputDecoration(
                         labelText: 'Contact',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
+                        labelStyle: const TextStyle(color: Color(0xFF8CAFC9)),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF8CAFC9), width: 1.2),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF8CAFC9), width: 2),
                         ),
                         isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                        filled: true,
+                        fillColor: Colors.white,
                       ),
                       keyboardType: TextInputType.phone,
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     TextField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         labelText: 'Enter your password',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
+                        labelStyle: const TextStyle(color: Color(0xFF8CAFC9)),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF8CAFC9), width: 1.2),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF8CAFC9), width: 2),
                         ),
                         isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                        filled: true,
+                        fillColor: Colors.white,
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword ? Icons.visibility_off : Icons.visibility,
@@ -697,17 +652,25 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     TextField(
                       controller: _confirmPasswordController,
                       obscureText: _obscureConfirmPassword,
                       decoration: InputDecoration(
                         labelText: 'Confirm Password',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
+                        labelStyle: const TextStyle(color: Color(0xFF8CAFC9)),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF8CAFC9), width: 1.2),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF8CAFC9), width: 2),
                         ),
                         isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                        filled: true,
+                        fillColor: Colors.white,
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
@@ -721,7 +684,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
                     Row(
                       children: [
                         Checkbox(
@@ -773,7 +736,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           backgroundColor: const Color(0xFF94B2CC),
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(6),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           elevation: 0,
                         ),
@@ -813,6 +776,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 32), // Space at the bottom
                   ],
                 ),
               ),

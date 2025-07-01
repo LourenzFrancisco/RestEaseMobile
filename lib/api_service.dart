@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 Future<Map<String, dynamic>> loginUser(String email, String password) async {
-  final url = Uri.parse('http://192.168.197.143/RestEase/api_login.php');
+  final url = Uri.parse('http://192.168.100.75/RestEase/api_login.php'); // DITO AY KUNG ANONG IPV4 NG LAPTOP MO
   final response = await http.post(
     url,
     headers: {'Content-Type': 'application/json'},
@@ -28,7 +28,7 @@ Future<Map<String, dynamic>> registerUser({
   required String confirmPassword,
   required bool terms,
 }) async {
-  final url = Uri.parse('http://192.168.197.143/RestEase/api_register.php');
+  final url = Uri.parse('http://192.168.100.75/RestEase/api_register.php');  // DITO AY KUNG ANONG IPV4 NG LAPTOP MO
   final response = await http.post(
     url,
     headers: {'Content-Type': 'application/json'},
