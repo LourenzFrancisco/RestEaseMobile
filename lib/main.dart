@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'api_service.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 import 'navbar.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
+
 
 void main() {
   runApp(const MyApp());
@@ -356,13 +360,13 @@ Future<void> _login() async {
                     SizedBox(
                       width: double.infinity,
                       height: 44,
-                      child: OutlinedButton.icon(
-                        onPressed: () {},
-                        icon: Image.asset('assets/google_logo.webp', width: 22, height: 22),
-                        label: const Text(
-                          'Sign in with google',
-                          style: TextStyle(color: Color(0xFF6B7280), fontSize: 16),
-                        ),
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const SignUpScreen()),
+                          );
+                        },
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: Color(0xFFD1D5DB)),
                           backgroundColor: Colors.white,
@@ -370,33 +374,13 @@ Future<void> _login() async {
                             borderRadius: BorderRadius.circular(6),
                           ),
                         ),
+                        child: const Text(
+                          'Sign Up',
+                          style: TextStyle(color: Color(0xFF6B7280), fontSize: 16),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 18),
-                    // Sign up link
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text("Don't have account? ", style: TextStyle(fontSize: 14)),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => const SignUpScreen()),
-                            );
-                          },
-                          child: const Text(
-                            'Sign Up',
-                            style: TextStyle(
-                              color: Color(0xFF8CAFC9),
-                              decoration: TextDecoration.underline,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+
                     const SizedBox(height: 32), // Space at the bottom
                   ],
                 ),
@@ -793,20 +777,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
 }
 
 
-// MapHomeScreen widget
-class MapHomeScreen extends StatelessWidget {
+class MapHomeScreen extends StatefulWidget {
   const MapHomeScreen({super.key});
+  @override
+  State<MapHomeScreen> createState() => _MapHomeScreenState();
+}
 
+class _MapHomeScreenState extends State<MapHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('RestEase Map')),
-      body: WebViewWidget(
-        controller: WebViewController()
-          ..setJavaScriptMode(JavaScriptMode.unrestricted)
-          ..loadRequest(Uri.parse('http://192.168.100.214/RestEase/AdminSide/Mapping.php')),
+      appBar: AppBar(
+        title: const Text('RestEase Map'),
       ),
-      bottomNavigationBar: const BottomNavBar(currentIndex: 0), // Add this line
+      body: const Center(
+        child: Text(
+          'Map Home Screen',
+          style: TextStyle(fontSize: 24),
+        ),
+      ),
+      bottomNavigationBar: const BottomNavBar(currentIndex: 0),
     );
   }
 }
