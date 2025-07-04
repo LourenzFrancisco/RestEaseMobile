@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'api_service.dart';
 import 'navbar.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
-import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:webview_flutter/webview_flutter.dart';
 
 
 void main() {
@@ -190,7 +187,6 @@ Future<void> _login() async {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
@@ -487,7 +483,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
@@ -776,7 +771,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 }
 
-
 class MapHomeScreen extends StatefulWidget {
   const MapHomeScreen({super.key});
   @override
@@ -784,21 +778,29 @@ class MapHomeScreen extends StatefulWidget {
 }
 
 class _MapHomeScreenState extends State<MapHomeScreen> {
+  late final WebViewController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..loadRequest(Uri.parse('http://192.168.100.214/RestEase/ClientSide/MapOnly.html'));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('RestEase Map'),
-      ),
-      body: const Center(
-        child: Text(
-          'Map Home Screen',
-          style: TextStyle(fontSize: 24),
+        // Replace the title text with your logo image
+        title: Image.asset(
+          'assets/logo.png',
+          height: 36,
         ),
+        backgroundColor: const Color.fromARGB(255, 167, 194, 213), // Optional: match your theme
       ),
+      body: WebViewWidget(controller: _controller),
       bottomNavigationBar: const BottomNavBar(currentIndex: 0),
     );
   }
 }
-
-
