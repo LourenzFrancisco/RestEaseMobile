@@ -1,9 +1,42 @@
-import 'package:flutter/material.dart'; // Add this import at the top
-import 'navbar.dart'; // Import the BottomNavBar widget
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'navbar.dart';
+import 'dart:io';
+// import 'package:file_picker/file_picker.dart';
 
-// Add the RequestScreen widget
-class RequestScreen extends StatelessWidget {
+class RequestScreen extends StatefulWidget {
   const RequestScreen({super.key});
+
+  @override
+  State<RequestScreen> createState() => _RequestScreenState();
+}
+
+class _RequestScreenState extends State<RequestScreen> {
+  final _firstNameController = TextEditingController();
+  final _middleNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
+  final _ageController = TextEditingController();
+  final _dobController = TextEditingController();
+  final _dodController = TextEditingController();
+  final _residencyController = TextEditingController();
+  final _informantController = TextEditingController();
+
+  String _requestType = 'Transfer';
+  bool _loading = false;
+  File? _deathCertificateFile;
+
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _middleNameController.dispose();
+    _lastNameController.dispose();
+    _ageController.dispose();
+    _dobController.dispose();
+    _dodController.dispose();
+    _residencyController.dispose();
+    _informantController.dispose();
+    super.dispose();
+  }
 
   void _showSubmittedDialog(BuildContext context) {
     showDialog(
@@ -81,6 +114,52 @@ class RequestScreen extends StatelessWidget {
     );
   }
 
+  // Future<void> _pickDeathCertificate() async {
+  //   FilePickerResult? result = await FilePicker.platform.pickFiles(
+  //     type: FileType.custom,
+  //     allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+  //   );
+  //   if (result != null && result.files.single.path != null) {
+  //     setState(() {
+  //       _deathCertificateFile = File(result.files.single.path!);
+  //     });
+  //   }
+  // }
+
+  Future<void> _submitRequest() async {
+    setState(() => _loading = true);
+    final url = Uri.parse('http://192.168.100.214/RestEase/ClientSide/clientrequest.php');
+
+    var request = http.MultipartRequest('POST', url);
+    request.fields['type'] = _requestType;
+    request.fields['first_name'] = _firstNameController.text;
+    request.fields['middle_name'] = _middleNameController.text;
+    request.fields['last_name'] = _lastNameController.text;
+    request.fields['age'] = _ageController.text;
+    request.fields['dob'] = _dobController.text;
+    request.fields['dod'] = _dodController.text;
+    request.fields['residency'] = _residencyController.text;
+    request.fields['informant'] = _informantController.text;
+
+    if (_deathCertificateFile != null) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'file_upload',
+        _deathCertificateFile!.path,
+      ));
+    }
+
+    final response = await request.send();
+    setState(() => _loading = false);
+
+    if (response.statusCode == 200) {
+      _showSubmittedDialog(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Submission failed. Please try again.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -140,7 +219,7 @@ class RequestScreen extends StatelessWidget {
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
                   child: DropdownButtonFormField<String>(
-                    value: 'Transfer',
+                    value: _requestType,
                     decoration: const InputDecoration(
                       labelText: 'Type',
                       border: InputBorder.none,
@@ -149,7 +228,11 @@ class RequestScreen extends StatelessWidget {
                       DropdownMenuItem(value: 'Transfer', child: Text('Transfer')),
                       DropdownMenuItem(value: 'Interment', child: Text('Internment')),
                     ],
-                    onChanged: (v) {},
+                    onChanged: (v) {
+                      setState(() {
+                        _requestType = v!;
+                      });
+                    },
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -164,8 +247,9 @@ class RequestScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 TextField(
+                  controller: _firstNameController,
                   decoration: InputDecoration(
-                    labelText: 'Full Name',
+                    labelText: 'First Name',
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
@@ -175,6 +259,31 @@ class RequestScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 TextField(
+                  controller: _middleNameController,
+                  decoration: InputDecoration(
+                    labelText: 'Middle Name',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _lastNameController,
+                  decoration: InputDecoration(
+                    labelText: 'Last Name',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _ageController,
                   decoration: InputDecoration(
                     labelText: 'Age',
                     filled: true,
@@ -187,17 +296,35 @@ class RequestScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 TextField(
+                  controller: _dobController,
+                  readOnly: true,
                   decoration: InputDecoration(
-                    labelText: 'Date of Born',
+                    labelText: 'Date of Birth',
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(6),
                     ),
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.calendar_today),
+                      onPressed: () async {
+                        DateTime? picked = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(1900),
+                          lastDate: DateTime.now(),
+                        );
+                        if (picked != null) {
+                          _dobController.text = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+                        }
+                      },
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
+                  controller: _dodController,
+                  readOnly: true,
                   decoration: InputDecoration(
                     labelText: 'Date Died',
                     filled: true,
@@ -205,10 +332,25 @@ class RequestScreen extends StatelessWidget {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(6),
                     ),
+                    suffixIcon: IconButton(
+                      icon: const Icon(Icons.calendar_today),
+                      onPressed: () async {
+                        DateTime? picked = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(1900),
+                          lastDate: DateTime.now(),
+                        );
+                        if (picked != null) {
+                          _dodController.text = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+                        }
+                      },
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
+                  controller: _residencyController,
                   decoration: InputDecoration(
                     labelText: 'Residency',
                     filled: true,
@@ -220,6 +362,7 @@ class RequestScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 TextField(
+                  controller: _informantController,
                   decoration: InputDecoration(
                     labelText: 'Informant Name',
                     filled: true,
@@ -250,14 +393,19 @@ class RequestScreen extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Upload birth certificate here',
-                        style: TextStyle(color: Color(0xFF6B7280)),
+                      Expanded(
+                        child: Text(
+                          _deathCertificateFile != null
+                              ? 'Selected: ${_deathCertificateFile!.path.split('/').last}'
+                              : 'Upload death certificate here',
+                          style: const TextStyle(color: Color(0xFF6B7280)),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                       GestureDetector(
-                        onTap: () {},
+                        // onTap: _pickDeathCertificate,
                         child: const Text(
-                          'choose files',
+                          'choose file',
                           style: TextStyle(
                             color: Color(0xFF20435C),
                             decoration: TextDecoration.underline,
@@ -271,9 +419,7 @@ class RequestScreen extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      _showSubmittedDialog(context);
-                    },
+                    onPressed: _loading ? null : _submitRequest,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF8CAFC9),
                       foregroundColor: Colors.white,
@@ -288,36 +434,35 @@ class RequestScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-               const SizedBox(height: 8),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
+                const SizedBox(height: 8),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
                     onPressed: () {
-                    if (Navigator.canPop(context)) {
-                      Navigator.pop(context);
-                    } else {
-                      // Navigator.pushReplacement(
-                      //   context,
-                      //   MaterialPageRoute(builder: (context) => const MapHomeScreen()),
-                      // );
-                    }
-                  }
-                  ,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFFE5E7EB),
-                        foregroundColor: Colors.black54,
-                        padding: EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      ),
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(fontSize: 18),
+                      if (Navigator.canPop(context)) {
+                        Navigator.pop(context);
+                      } else {
+                        // Navigator.pushReplacement(
+                        //   context,
+                        //   MaterialPageRoute(builder: (context) => const MapHomeScreen()),
+                        // );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFFE5E7EB),
+                      foregroundColor: Colors.black54,
+                      padding: EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
                       ),
                     ),
+                    child: const Text(
+                      'Cancel',
+                      style: TextStyle(fontSize: 18),
+                    ),
                   ),
+                ),
 
               ],
             ),
