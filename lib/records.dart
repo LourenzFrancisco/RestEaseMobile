@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'navbar.dart';
-// ...existing code...
+import 'package:shared_preferences/shared_preferences.dart';
+import 'api_service.dart';
+import 'requests.dart'; // For FileWebViewScreen
+import 'package:url_launcher/url_launcher.dart';
 
 // Replace RecordsCertificateScreen with a stateful version
 class RecordsCertificateScreen extends StatefulWidget {
@@ -12,6 +15,27 @@ class RecordsCertificateScreen extends StatefulWidget {
 
 class _RecordsCertificateScreenState extends State<RecordsCertificateScreen> {
   int selectedTab = 0; // 0 = Records, 1 = Certificate
+
+  List<Map<String, dynamic>> _acceptedRequests = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAcceptedRequests();
+  }
+
+  Future<void> _loadAcceptedRequests() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getInt('user_id');
+    if (userId != null) {
+      final requests = await fetchAcceptedRequests(userId);
+      setState(() {
+        _acceptedRequests = requests;
+        _loading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -119,148 +143,92 @@ class _RecordsCertificateScreenState extends State<RecordsCertificateScreen> {
                   const SizedBox(height: 24),
                   // Content area
                   if (selectedTab == 0) ...[
-                    // Records form (as before)
-                    TextField(
-                      enabled: false,
-                      decoration: InputDecoration(
-                        labelText: 'Type',
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      ),
-                      controller: TextEditingController(text: 'Transfer'),
-                    ),
-                    const SizedBox(height: 18),
-                    const Text(
-                      'Deceased  Information',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                        color: Color(0xFF20435C),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    // Full Name
-                    TextField(
-                      enabled: false,
-                      decoration: InputDecoration(
-                        labelText: 'Full Name',
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      ),
-                      controller: TextEditingController(text: 'Jobert Manabots X.'),
-                    ),
-                    const SizedBox(height: 12),
-                    // Age
-                    TextField(
-                      enabled: false,
-                      decoration: InputDecoration(
-                        labelText: 'Age',
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      ),
-                      controller: TextEditingController(text: '34'),
-                    ),
-                    const SizedBox(height: 12),
-                    // Date of Born
-                    TextField(
-                      enabled: false,
-                      decoration: InputDecoration(
-                        labelText: 'Date of Born',
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      ),
-                      controller: TextEditingController(text: 'April 27, 1977'),
-                    ),
-                    const SizedBox(height: 12),
-                    // Date Died
-                    TextField(
-                      enabled: false,
-                      decoration: InputDecoration(
-                        labelText: 'Date Died',
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      ),
-                      controller: TextEditingController(text: 'April 19, 2012'),
-                    ),
-                    const SizedBox(height: 12),
-                    // Residency
-                    TextField(
-                      enabled: false,
-                      decoration: InputDecoration(
-                        labelText: 'Residency',
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      ),
-                      controller: TextEditingController(text: 'Ohio, Mexico Pampanga'),
-                    ),
-                    const SizedBox(height: 12),
-                    // Informant Name
-                    TextField(
-                      enabled: false,
-                      decoration: InputDecoration(
-                        labelText: 'Informant Name',
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                      ),
-                      controller: TextEditingController(text: 'Antique Amor'),
-                    ),
-                    const SizedBox(height: 18),
-                    const Text(
-                      'Uploaded Files',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                        color: Color(0xFF20435C),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Color(0xFFD1D5DB), style: BorderStyle.solid, width: 1),
-                        borderRadius: BorderRadius.circular(8),
-                        color: Colors.white,
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.picture_as_pdf, color: Colors.red, size: 28),
-                          const SizedBox(width: 8),
-                          GestureDetector(
-                            onTap: () {},
-                            child: const Text(
-                              'BirthCert.pdf',
-                              style: TextStyle(
-                                color: Color(0xFF20435C),
-                                decoration: TextDecoration.underline,
-                                fontSize: 16,
+                    if (_loading)
+                      const Center(child: CircularProgressIndicator())
+                    else if (_acceptedRequests.isEmpty)
+                      const Center(child: Text('No accepted records.'))
+                    else
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: _acceptedRequests.length,
+                        separatorBuilder: (context, index) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final req = _acceptedRequests[index];
+                          return Card(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              side: const BorderSide(color: Color(0xFFE0E0E0)),
+                            ),
+                            elevation: 0,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Text(
+                                          'Accepted',
+                                          style: TextStyle(
+                                            color: Colors.green,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        RichText(
+                                          text: TextSpan(
+                                            text: 'Type: ',
+                                            style: const TextStyle(
+                                              color: Colors.black54,
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 14,
+                                            ),
+                                            children: [
+                                              TextSpan(
+                                                text: req['type'] ?? '',
+                                                style: const TextStyle(
+                                                  color: Colors.black87,
+                                                  fontWeight: FontWeight.normal,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => AcceptedRequestDetailScreen(request: req),
+                                        ),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFFB0C4D9),
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                    child: const Text(
+                                      'View',
+                                      style: TextStyle(fontSize: 16),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ),
-                        ],
+                          );
+                        },
                       ),
-                    ),
                   ] else ...[
                     // Certificate tab: show a styled certificate
                     Center(
@@ -380,6 +348,267 @@ class _RecordsCertificateScreenState extends State<RecordsCertificateScreen> {
                     ),
                   ],
                 ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      bottomNavigationBar: const BottomNavBar(currentIndex: 2),
+    );
+  }
+}
+
+// =================== Accepted Request Detail Screen ===================
+class AcceptedRequestDetailScreen extends StatelessWidget {
+  final Map<String, dynamic> request;
+  const AcceptedRequestDetailScreen({super.key, required this.request});
+
+  @override
+  Widget build(BuildContext context) {
+    String fileUrl = (request['file_upload_url'] ?? '').toString().trim();
+    String fileName = '';
+    if (fileUrl.isNotEmpty) {
+      fileName = fileUrl.split('/').last;
+    }
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F6FA),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Center(
+              child: Container(
+                width: 370,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Image.asset(
+                      'assets/logo.png',
+                      width: 52,
+                      height: 52,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back_ios_new, size: 24, color: Color(0xFF20435C)),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                        const SizedBox(width: 4),
+                        const Text(
+                          'Accepted Request',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF20435C),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    // Type
+                    TextField(
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Type',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      controller: TextEditingController(text: request['type'] ?? ''),
+                    ),
+                    const SizedBox(height: 18),
+                    const Text(
+                      'Deceased  Information',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                        color: Color(0xFF20435C),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    // Full Name
+                    TextField(
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Full Name',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      controller: TextEditingController(
+                        text: '${request['first_name'] ?? ''} ${request['middle_name'] ?? ''} ${request['last_name'] ?? ''}',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Age
+                    TextField(
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Age',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      controller: TextEditingController(text: request['age']?.toString() ?? ''),
+                    ),
+                    const SizedBox(height: 12),
+                    // Date of Born
+                    TextField(
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Date of Born',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      controller: TextEditingController(text: request['dob'] ?? ''),
+                    ),
+                    const SizedBox(height: 12),
+                    // Date Died
+                    TextField(
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Date Died',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      controller: TextEditingController(text: request['dod'] ?? ''),
+                    ),
+                    const SizedBox(height: 12),
+                    // Residency
+                    TextField(
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Residency',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      controller: TextEditingController(text: request['residency'] ?? ''),
+                    ),
+                    const SizedBox(height: 12),
+                    // Informant Name
+                    TextField(
+                      enabled: false,
+                      decoration: InputDecoration(
+                        labelText: 'Informant Name',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      controller: TextEditingController(text: request['informant_name'] ?? ''),
+                    ),
+                    const SizedBox(height: 18),
+                    // Uploaded File (with placeholder)
+                    Row(
+                      children: [
+                        Icon(Icons.attach_file, color: Colors.grey[700]),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: fileUrl.isNotEmpty
+                              ? GestureDetector(
+                                  onTap: () async {
+                                    final isImage = fileName.toLowerCase().endsWith('.jpg') ||
+                                        fileName.toLowerCase().endsWith('.jpeg') ||
+                                        fileName.toLowerCase().endsWith('.png');
+                                    if (isImage) {
+                                      showDialog(
+                                        context: context,
+                                        builder: (_) => Dialog(
+                                          child: InteractiveViewer(
+                                            child: Image.network(fileUrl),
+                                          ),
+                                        ),
+                                      );
+                                    } else {
+                                      final uri = Uri.parse(fileUrl);
+                                      bool launched = false;
+                                      try {
+                                        if (await canLaunchUrl(uri)) {
+                                          launched = await launchUrl(uri, mode: LaunchMode.platformDefault);
+                                        }
+                                        if (!launched && await canLaunchUrl(uri)) {
+                                          launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                        }
+                                      } catch (e) {
+                                        launched = false;
+                                      }
+                                      if (!launched) {
+                                        try {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => FileWebViewScreen(url: fileUrl),
+                                            ),
+                                          );
+                                        } catch (e) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Could not open file. Please check your network or file type.')),
+                                          );
+                                        }
+                                      }
+                                    }
+                                  },
+                                  child: const Text(
+                                    'View Uploaded File',
+                                    style: TextStyle(
+                                      color: Colors.blue,
+                                      decoration: TextDecoration.underline,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                )
+                              : const Text(
+                                  'No file uploaded',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // TODO: Go to payment screen
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF94B2CC),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          'Pay',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

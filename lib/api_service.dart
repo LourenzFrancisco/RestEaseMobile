@@ -61,3 +61,18 @@ Future<List<Map<String, dynamic>>> fetchClientRequests(int userId) async {
     throw Exception('Failed to load requests');
   }
 }
+
+Future<List<Map<String, dynamic>>> fetchAcceptedRequests(int userId) async {
+  final url = Uri.parse('http://192.168.100.27/RestEase/ClientSide/get_accepted_requests.php');
+  final response = await http.post(url, body: {'user_id': userId.toString()});
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    if (data['success'] == true) {
+      return List<Map<String, dynamic>>.from(data['requests']);
+    } else {
+      return [];
+    }
+  } else {
+    throw Exception('Failed to load accepted requests');
+  }
+}

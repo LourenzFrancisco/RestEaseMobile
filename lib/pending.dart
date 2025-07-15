@@ -342,6 +342,7 @@ class PendingRequestDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fileUrl = (request['file_upload_url'] ?? '').toString().trim();
+    final fileName = fileUrl.isNotEmpty ? fileUrl.split('/').last : '';
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
       body: SafeArea(
@@ -514,34 +515,48 @@ class PendingRequestDetailScreen extends StatelessWidget {
                           child: fileUrl.isNotEmpty
                               ? GestureDetector(
                                   onTap: () async {
-                                    final uri = Uri.parse(fileUrl);
-                                    bool launched = false;
-                                    try {
-                                      if (await canLaunchUrl(uri)) {
-                                        launched = await launchUrl(uri, mode: LaunchMode.platformDefault);
-                                      }
-                                      if (!launched && await canLaunchUrl(uri)) {
-                                        launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
-                                      }
-                                    } catch (e) {
-                                      launched = false;
-                                    }
-                                    if (!launched) {
-                                      try {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => FileWebViewScreen(url: fileUrl),
+                                    final isImage = fileName.toLowerCase().endsWith('.jpg') ||
+                                        fileName.toLowerCase().endsWith('.jpeg') ||
+                                        fileName.toLowerCase().endsWith('.png');
+                                    if (isImage) {
+                                      showDialog(
+                                        context: context,
+                                        builder: (_) => Dialog(
+                                          child: InteractiveViewer(
+                                            child: Image.network(fileUrl),
                                           ),
-                                        );
+                                        ),
+                                      );
+                                    } else {
+                                      final uri = Uri.parse(fileUrl);
+                                      bool launched = false;
+                                      try {
+                                        if (await canLaunchUrl(uri)) {
+                                          launched = await launchUrl(uri, mode: LaunchMode.platformDefault);
+                                        }
+                                        if (!launched && await canLaunchUrl(uri)) {
+                                          launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                        }
                                       } catch (e) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('Could not open file. Please check your network or file type.')),
-                                        );
+                                        launched = false;
+                                      }
+                                      if (!launched) {
+                                        try {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => FileWebViewScreen(url: fileUrl),
+                                            ),
+                                          );
+                                        } catch (e) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Could not open file. Please check your network or file type.')),
+                                          );
+                                        }
                                       }
                                     }
                                   },
-                                  child: Text(
+                                  child: const Text(
                                     'View Uploaded File',
                                     style: TextStyle(
                                       color: Colors.blue,
@@ -550,7 +565,7 @@ class PendingRequestDetailScreen extends StatelessWidget {
                                     ),
                                   ),
                                 )
-                              : Text(
+                              : const Text(
                                   'No file uploaded',
                                   style: TextStyle(
                                     color: Colors.grey,

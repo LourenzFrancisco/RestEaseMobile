@@ -286,6 +286,7 @@ class _RequestScreenState extends State<RequestScreen> {
                       DropdownMenuItem(value: null, child: Text('Select Type')),
                       DropdownMenuItem(value: 'Transfer', child: Text('Transfer')),
                       DropdownMenuItem(value: 'Interment', child: Text('Internment')),
+                      DropdownMenuItem(value: 'Exhumation', child: Text('Exhumation')),
                     ],
                     onChanged: (v) {
                       setState(() {
