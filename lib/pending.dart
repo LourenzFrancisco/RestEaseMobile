@@ -316,7 +316,7 @@ class PendingRequestDetailScreen extends StatelessWidget {
   }
 
   void _cancelRequest(BuildContext context) async {
-    final url = Uri.parse('http://192.168.100.27/RestEase/ClientSide/cancel_client_request.php');
+    final url = Uri.parse('http://192.168.100.214/RestEase/ClientSide/cancel_client_request.php');
     try {
       final response = await http.post(url, body: {'request_id': request['id'].toString()});
       final data = jsonDecode(response.body);
@@ -595,7 +595,7 @@ class PendingRequestDetailScreen extends StatelessWidget {
 }
 
 Future<List<Map<String, dynamic>>> fetchClientRequests(int userId) async {
-  final url = Uri.parse('http://192.168.100.27/RestEase/ClientSide/get_client_requests.php');
+  final url = Uri.parse('http://192.168.100.214/RestEase/ClientSide/get_client_requests.php');
   final response = await http.post(url, body: {'user_id': userId.toString()});
   if (response.statusCode == 200) {
     final List data = jsonDecode(response.body);

@@ -146,7 +146,7 @@ class _RequestScreenState extends State<RequestScreen> {
       setState(() => _loading = false);
       return;
     }
-    final url = Uri.parse('http://192.168.100.27/RestEase/ClientSide/clientrequest.php');
+    final url = Uri.parse('http://192.168.100.214/RestEase/ClientSide/clientrequest.php');
 
     var request = http.MultipartRequest('POST', url);
     request.fields['type'] = _requestType ?? '';
