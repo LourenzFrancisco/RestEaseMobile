@@ -1,12 +1,45 @@
 import 'package:flutter/material.dart';
 import 'navbar.dart';
 import 'payment.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'api_service.dart';
+import 'requests.dart';
 
 // ...existing code...
 
 // Add PendingRequestScreen widget
-class PendingRequestScreen extends StatelessWidget {
+class PendingRequestScreen extends StatefulWidget {
   const PendingRequestScreen({super.key});
+
+  @override
+  State<PendingRequestScreen> createState() => _PendingRequestScreenState();
+}
+
+class _PendingRequestScreenState extends State<PendingRequestScreen> {
+  late Future<List<Map<String, dynamic>>> _futureRequests;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRequests();
+  }
+
+  void _loadRequests() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getInt('user_id');
+    setState(() {
+      _futureRequests = fetchClientRequests(userId!);
+    });
+  }
+
+  // Add this method to refresh when coming back from detail
+  Future<void> _refreshOnReturn() async {
+    _loadRequests();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,73 +49,79 @@ class PendingRequestScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-           // Logo stays in its own row
-Padding(
-  padding: const EdgeInsets.only(left: 16, top: 16, right: 16),
-  child: Image.asset(
-    'assets/logo.png',
-    width: 52,
-    height: 52,
-  ),
-),
-
-const SizedBox(height: 8),
-
-// Back button + text in one row
-Padding(
-  padding: const EdgeInsets.symmetric(horizontal: 16),
-  child: Row(
-    children: [
-      IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new, size: 24, color: Color(0xFF20435C)),
-        onPressed: () => Navigator.pop(context),
-      ),
-      const SizedBox(width: 4),
-      const Text(
-        'Pending Request',
-        style: TextStyle(
-          fontSize: 28,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFF20435C),
-        ),
-      ),
-    ],
-  ),
-),
-
-            const SizedBox(height: 16), 
+            // Logo row
+            Padding(
+              padding: const EdgeInsets.only(left: 16, top: 16, right: 16),
+              child: Image.asset(
+                'assets/logo.png',
+                width: 52,
+                height: 52,
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Back button + text row
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
+              child: Row(
                 children: [
-                  _PendingRequestCard(
-                    status: 'Request Pending',
-                    statusColor: Colors.red,
-                    type: 'Transfer',
-                    buttonText: 'View',
-                    buttonColor: const Color(0xFFB0C4D9),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const PendingRequestDetailScreen()),
-                      );
-                    },
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new, size: 24, color: Color(0xFF20435C)),
+                    onPressed: () => Navigator.pop(context),
                   ),
-                  const SizedBox(height: 16),
-                  _PendingRequestCard(
-                    status: 'Request Approve',
-                    statusColor: Colors.green,
-                    type: 'Internment',
-                    buttonText: 'Pay',
-                    buttonColor: const Color(0xFF4285F4),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const PaymentScreen()),
-                      );
-                    },
+                  const SizedBox(width: 4),
+                  const Text(
+                    'Pending Request',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF20435C),
+                    ),
                   ),
                 ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Expanded for the list
+            Expanded(
+              child: FutureBuilder<List<Map<String, dynamic>>>(
+                future: _futureRequests,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Error: \\${snapshot.error}'));
+                  }
+                  final requests = snapshot.data ?? [];
+                  if (requests.isEmpty) {
+                    return const Center(child: Text('No pending requests.'));
+                  }
+                  return ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    itemCount: requests.length,
+                    separatorBuilder: (context, index) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final req = requests[index];
+                      return _PendingRequestCard(
+                        status: 'Pending',
+                        statusColor: Colors.red,
+                        type: req['type'] ?? '',
+                        buttonText: 'View',
+                        buttonColor: const Color(0xFFB0C4D9),
+                        onPressed: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PendingRequestDetailScreen(request: req),
+                            ),
+                          );
+                          // Refresh the list after returning from detail
+                          _refreshOnReturn();
+                        },
+                      );
+                    },
+                  );
+                },
               ),
             ),
           ],
@@ -121,58 +160,62 @@ class _PendingRequestCard extends StatelessWidget {
       elevation: 0,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-        child: Row(
+        child: Column(
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    status,
-                    style: TextStyle(
-                      color: statusColor,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  RichText(
-                    text: TextSpan(
-                      text: 'Type: ',
-                      style: const TextStyle(
-                        color: Colors.black54,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14,
-                      ),
-                      children: [
-                        TextSpan(
-                          text: type,
-                          style: const TextStyle(
-                            color: Colors.black87,
-                            fontWeight: FontWeight.normal,
-                          ),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        status,
+                        style: TextStyle(
+                          color: statusColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 2),
+                      RichText(
+                        text: TextSpan(
+                          text: 'Type: ',
+                          style: const TextStyle(
+                            color: Colors.black54,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: type,
+                              style: const TextStyle(
+                                color: Colors.black87,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            ElevatedButton(
-              onPressed: onPressed,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: buttonColor,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
                 ),
-                elevation: 0,
-              ),
-              child: Text(
-                buttonText,
-                style: const TextStyle(fontSize: 16),
-              ),
+                ElevatedButton(
+                  onPressed: onPressed,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: buttonColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    buttonText,
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -183,7 +226,8 @@ class _PendingRequestCard extends StatelessWidget {
 
 // Add PendingRequestDetailScreen widget
 class PendingRequestDetailScreen extends StatelessWidget {
-  const PendingRequestDetailScreen({super.key});
+  final Map<String, dynamic> request;
+  const PendingRequestDetailScreen({super.key, required this.request});
 
   void _showCancelConfirmation(BuildContext context) {
     showDialog(
@@ -234,8 +278,7 @@ class PendingRequestDetailScreen extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () {
                         Navigator.of(ctx).pop();
-                        // Add your cancel logic here
-                        Navigator.of(context).pop(); // Go back after cancel
+                        _cancelRequest(context);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF4285F4),
@@ -272,8 +315,33 @@ class PendingRequestDetailScreen extends StatelessWidget {
     );
   }
 
+  void _cancelRequest(BuildContext context) async {
+    final url = Uri.parse('http://192.168.100.27/RestEase/ClientSide/cancel_client_request.php');
+    try {
+      final response = await http.post(url, body: {'request_id': request['id'].toString()});
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Request canceled successfully.')),
+        );
+        // Pop twice: detail screen and go back to list
+        Navigator.of(context).pop();
+        // Optionally, trigger a refresh in the parent PendingRequestScreen
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to cancel request: \\${data['message'] ?? 'Unknown error'}')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Network error: \\${e.toString()}')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final fileUrl = (request['file_upload_url'] ?? '').toString().trim();
     return Scaffold(
       backgroundColor: const Color(0xFFF5F6FA),
       body: SafeArea(
@@ -287,34 +355,29 @@ class PendingRequestDetailScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                   // Logo stays as is
-                      Image.asset(
-                        'assets/logo.png',
-                        width: 52,
-                        height: 52,
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      // Back button + Text in one row
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.arrow_back_ios_new, size: 24, color: Color(0xFF20435C)),
-                            onPressed: () => Navigator.pop(context),
+                    Image.asset(
+                      'assets/logo.png',
+                      width: 52,
+                      height: 52,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back_ios_new, size: 24, color: Color(0xFF20435C)),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                        const SizedBox(width: 4),
+                        const Text(
+                          'Pending Request',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF20435C),
                           ),
-                          const SizedBox(width: 4),
-                          const Text(
-                            'Pending Request',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF20435C),
-                            ),
-                          ),
-                        ],
-                      ),
-                    const SizedBox(height: 16),
+                        ),
+                      ],
+                    ),
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
@@ -344,7 +407,7 @@ class PendingRequestDetailScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                       ),
-                      controller: TextEditingController(text: 'Transfer'),
+                      controller: TextEditingController(text: request['type'] ?? ''),
                     ),
                     const SizedBox(height: 18),
                     const Text(
@@ -367,7 +430,9 @@ class PendingRequestDetailScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                       ),
-                      controller: TextEditingController(text: 'Jobert Manabots X.'),
+                      controller: TextEditingController(
+                        text: '${request['first_name'] ?? ''} ${request['middle_name'] ?? ''} ${request['last_name'] ?? ''}',
+                      ),
                     ),
                     const SizedBox(height: 12),
                     // Age
@@ -381,7 +446,7 @@ class PendingRequestDetailScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                       ),
-                      controller: TextEditingController(text: '34'),
+                      controller: TextEditingController(text: request['age']?.toString() ?? ''),
                     ),
                     const SizedBox(height: 12),
                     // Date of Born
@@ -395,7 +460,7 @@ class PendingRequestDetailScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                       ),
-                      controller: TextEditingController(text: 'April 27, 1977'),
+                      controller: TextEditingController(text: request['dob'] ?? ''),
                     ),
                     const SizedBox(height: 12),
                     // Date Died
@@ -409,7 +474,7 @@ class PendingRequestDetailScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                       ),
-                      controller: TextEditingController(text: 'April 19, 2012'),
+                      controller: TextEditingController(text: request['dod'] ?? ''),
                     ),
                     const SizedBox(height: 12),
                     // Residency
@@ -423,7 +488,7 @@ class PendingRequestDetailScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                       ),
-                      controller: TextEditingController(text: 'Ohio, Mexico Pampanga'),
+                      controller: TextEditingController(text: request['residency'] ?? ''),
                     ),
                     const SizedBox(height: 12),
                     // Informant Name
@@ -437,9 +502,65 @@ class PendingRequestDetailScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                       ),
-                      controller: TextEditingController(text: 'Antique Amor'),
+                      controller: TextEditingController(text: request['informant_name'] ?? ''),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 18),
+                    // Uploaded File (with placeholder)
+                    Row(
+                      children: [
+                        Icon(Icons.attach_file, color: Colors.grey[700]),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: fileUrl.isNotEmpty
+                              ? GestureDetector(
+                                  onTap: () async {
+                                    final uri = Uri.parse(fileUrl);
+                                    bool launched = false;
+                                    try {
+                                      if (await canLaunchUrl(uri)) {
+                                        launched = await launchUrl(uri, mode: LaunchMode.platformDefault);
+                                      }
+                                      if (!launched && await canLaunchUrl(uri)) {
+                                        launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                      }
+                                    } catch (e) {
+                                      launched = false;
+                                    }
+                                    if (!launched) {
+                                      try {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => FileWebViewScreen(url: fileUrl),
+                                          ),
+                                        );
+                                      } catch (e) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Could not open file. Please check your network or file type.')),
+                                        );
+                                      }
+                                    }
+                                  },
+                                  child: Text(
+                                    'View Uploaded File',
+                                    style: TextStyle(
+                                      color: Colors.blue,
+                                      decoration: TextDecoration.underline,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                )
+                              : Text(
+                                  'No file uploaded',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
@@ -470,5 +591,16 @@ class PendingRequestDetailScreen extends StatelessWidget {
       ),
       bottomNavigationBar: BottomNavBar(currentIndex: 2),
     );
+  }
+}
+
+Future<List<Map<String, dynamic>>> fetchClientRequests(int userId) async {
+  final url = Uri.parse('http://192.168.100.27/RestEase/ClientSide/get_client_requests.php');
+  final response = await http.post(url, body: {'user_id': userId.toString()});
+  if (response.statusCode == 200) {
+    final List data = jsonDecode(response.body);
+    return data.cast<Map<String, dynamic>>();
+  } else {
+    throw Exception('Failed to load requests');
   }
 }

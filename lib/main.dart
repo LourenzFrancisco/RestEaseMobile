@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'api_service.dart';
 import 'navbar.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 void main() {
@@ -164,6 +165,9 @@ Future<void> _login() async {
   try {
     final result = await loginUser(email, password);
     if (result['success'] == true) {
+      // Save user_id to SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('user_id', result['user_id']);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MapHomeScreen()), // <-- Go to MapHomeScreen after login
@@ -785,7 +789,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
     super.initState();
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse('http://192.168.100.214/RestEase/ClientSide/MapOnly.html'));
+      ..loadRequest(Uri.parse('http://192.168.100.27/RestEase/ClientSide/MapOnly.html'));
   }
 
   @override
