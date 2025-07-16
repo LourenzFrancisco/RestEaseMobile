@@ -33,7 +33,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.100.214/RestEase/api/send_reset_code_api.php'), // 🔁 Replace with your LAN IP + PHP path
+        Uri.parse('http://192.168.210.148/RestEase/api/send_reset_code_api.php'), // 🔁 Replace with your LAN IP + PHP path
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email}),
       );
@@ -247,7 +247,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.100.214/RestEase/api/verify_code_api.php'),
+        Uri.parse('http://192.168.210.148/RestEase/api/verify_code_api.php'),
         headers: {'Accept': 'application/json'},
         body: {
           'email': email,
@@ -297,7 +297,7 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.100.214/RestEase/api/send_reset_code_api.php'),
+        Uri.parse('http://192.168.210.148/RestEase/api/send_reset_code_api.php'),
         headers: {'Accept': 'application/json'},
         body: {'email': email},
       );
@@ -527,7 +527,7 @@ Future<void> _resetPassword() async {
 
   try {
     final response = await http.post(
-      Uri.parse('http://192.168.100.214/RestEase/api/CreatePassword_api.php'),
+      Uri.parse('http://192.168.210.148/RestEase/api/CreatePassword_api.php'),
       headers: {'Accept': 'application/json'},
       body: {
         'email': widget.email,

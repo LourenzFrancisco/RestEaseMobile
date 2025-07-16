@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'navbar.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:permission_handler_platform_interface/permission_handler_platform_interface.dart';
+// import 'package:permission_handler/permission_handler.dart';
+// import 'package:permission_handler_platform_interface/permission_handler_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
+// import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class RequestScreen extends StatefulWidget {
@@ -146,7 +147,7 @@ class _RequestScreenState extends State<RequestScreen> {
       setState(() => _loading = false);
       return;
     }
-    final url = Uri.parse('http://192.168.100.214/RestEase/ClientSide/clientrequest.php');
+    final url = Uri.parse('http://192.168.210.148/RestEase/ClientSide/clientrequest.php');
 
     var request = http.MultipartRequest('POST', url);
     request.fields['type'] = _requestType ?? '';
@@ -179,23 +180,82 @@ class _RequestScreenState extends State<RequestScreen> {
     }
   }
 
+  String? _validateNameField(String? value, String fieldName) {
+    if (value == null || value.trim().isEmpty) {
+      return '$fieldName is required';
+    }
+    
+    // Check for numbers and symbols
+    final RegExp invalidChars = RegExp(r'[0-9!@#$%^&*(),.?":{}|<>]');
+    if (invalidChars.hasMatch(value)) {
+      return '$fieldName should only contain letters and spaces';
+    }
+    
+    return null;
+  }
+
+  String? _validateAgeField(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Age is required';
+    }
+    
+    // Check if it's a valid number
+    if (int.tryParse(value.trim()) == null) {
+      return 'Age should only contain numbers';
+    }
+    
+    int age = int.parse(value.trim());
+    if (age <= 0 || age > 150) {
+      return 'Please enter a valid age';
+    }
+    
+    return null;
+  }
+
   Future<void> _confirmAndSubmitRequest() async {
     // Validate all fields
+    String? firstNameError = _validateNameField(_firstNameController.text, 'First Name');
+    String? middleNameError = _validateNameField(_middleNameController.text, 'Middle Name');
+    String? lastNameError = _validateNameField(_lastNameController.text, 'Last Name');
+    String? informantError = _validateNameField(_informantController.text, 'Informant Name');
+    String? ageError = _validateAgeField(_ageController.text);
+
     if (_requestType == null ||
-        _firstNameController.text.trim().isEmpty ||
-        _middleNameController.text.trim().isEmpty ||
-        _lastNameController.text.trim().isEmpty ||
-        _ageController.text.trim().isEmpty ||
+        firstNameError != null ||
+        middleNameError != null ||
+        lastNameError != null ||
+        informantError != null ||
+        ageError != null ||
         _dobController.text.trim().isEmpty ||
         _dodController.text.trim().isEmpty ||
         _residencyController.text.trim().isEmpty ||
-        _informantController.text.trim().isEmpty ||
         _deathCertificateFile == null) {
+      
+      String errorMessage = 'Please fix the following errors:\n';
+      List<String> errors = [];
+      
+      if (_requestType == null) errors.add('- Select a request type');
+      if (firstNameError != null) errors.add('- $firstNameError');
+      if (middleNameError != null) errors.add('- $middleNameError');
+      if (lastNameError != null) errors.add('- $lastNameError');
+      if (informantError != null) errors.add('- $informantError');
+      if (ageError != null) errors.add('- $ageError');
+      if (_dobController.text.trim().isEmpty) errors.add('- Date of Birth is required');
+      if (_dodController.text.trim().isEmpty) errors.add('- Date of Death is required');
+      if (_residencyController.text.trim().isEmpty) errors.add('- Residency is required');
+      if (_deathCertificateFile == null) errors.add('- Death certificate file is required');
+      
+      errorMessage += errors.join('\n');
+      
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill out all fields and select a file.')),
+        SnackBar(
+          content: Text(errorMessage),
+          duration: const Duration(seconds: 4),
+        ),
       );
       return;
     }
+    
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -309,6 +369,9 @@ class _RequestScreenState extends State<RequestScreen> {
                 const SizedBox(height: 12),
                 TextField(
                   controller: _firstNameController,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+                  ],
                   decoration: InputDecoration(
                     labelText: 'First Name',
                     filled: true,
@@ -321,6 +384,9 @@ class _RequestScreenState extends State<RequestScreen> {
                 const SizedBox(height: 12),
                 TextField(
                   controller: _middleNameController,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+                  ],
                   decoration: InputDecoration(
                     labelText: 'Middle Name',
                     filled: true,
@@ -333,6 +399,9 @@ class _RequestScreenState extends State<RequestScreen> {
                 const SizedBox(height: 12),
                 TextField(
                   controller: _lastNameController,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+                  ],
                   decoration: InputDecoration(
                     labelText: 'Last Name',
                     filled: true,
@@ -345,6 +414,10 @@ class _RequestScreenState extends State<RequestScreen> {
                 const SizedBox(height: 12),
                 TextField(
                   controller: _ageController,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(3),
+                  ],
                   decoration: InputDecoration(
                     labelText: 'Age',
                     filled: true,
@@ -424,6 +497,9 @@ class _RequestScreenState extends State<RequestScreen> {
                 const SizedBox(height: 12),
                 TextField(
                   controller: _informantController,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+                  ],
                   decoration: InputDecoration(
                     labelText: 'Informant Name',
                     filled: true,

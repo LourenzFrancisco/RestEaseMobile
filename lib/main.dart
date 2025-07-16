@@ -795,7 +795,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
     super.initState();
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse('http://192.168.100.214/RestEase/ClientSide/MapOnly.html'));
+      ..loadRequest(Uri.parse('http://192.168.210.148/RestEase/ClientSide/MapOnly.html'));
   }
 
   @override
