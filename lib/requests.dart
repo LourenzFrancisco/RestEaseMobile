@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'navbar.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
-// import 'package:permission_handler/permission_handler.dart';
+import 'package:permission_handler/permission_handler.dart';
 // import 'package:permission_handler_platform_interface/permission_handler_platform_interface.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:url_launcher/url_launcher.dart';
@@ -120,18 +120,98 @@ class _RequestScreenState extends State<RequestScreen> {
     );
   }
 
+  Future<bool> _requestStoragePermission() async {
+    // For Android 13+ use Permission.photos, for older use Permission.storage
+    if (await Permission.photos.isGranted || await Permission.storage.isGranted) {
+      debugPrint('Permission already granted.');
+      return true;
+    }
+    var status = await Permission.photos.request();
+    if (status.isGranted) {
+      debugPrint('Permission.photos granted after request.');
+      return true;
+    }
+    if (status.isPermanentlyDenied) {
+      debugPrint('Permission.photos permanently denied.');
+      await showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Permission Required'),
+          content: const Text('Storage permission is permanently denied. Please enable it in your phone\'s app settings.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                openAppSettings();
+                Navigator.of(ctx).pop();
+              },
+              child: const Text('Open Settings'),
+            ),
+          ],
+        ),
+      );
+      return false;
+    }
+    status = await Permission.storage.request();
+    if (status.isGranted) {
+      debugPrint('Permission.storage granted after request.');
+      return true;
+    }
+    if (status.isPermanentlyDenied) {
+      debugPrint('Permission.storage permanently denied.');
+      await showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Permission Required'),
+          content: const Text('Storage permission is permanently denied. Please enable it in your phone\'s app settings.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                openAppSettings();
+                Navigator.of(ctx).pop();
+              },
+              child: const Text('Open Settings'),
+            ),
+          ],
+        ),
+      );
+      return false;
+    }
+    debugPrint('Permission not granted.');
+    return false;
+  }
+
   Future<void> _pickDeathCertificate() async {
+    // Request storage permission first
+    final granted = await _requestStoragePermission();
+    if (!granted) {
+      debugPrint('Permission not granted, not opening file picker.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Storage permission is required to select an image.')),
+      );
+      return;
+    }
+    debugPrint('Opening file picker...');
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+      allowedExtensions: ['jpg', 'jpeg', 'png'],
     );
     if (result != null && result.files.single.path != null) {
       setState(() {
         _deathCertificateFile = File(result.files.single.path!);
       });
+      debugPrint('File selected: \\${result.files.single.path}');
     } else {
+      debugPrint('No image selected or permission denied in picker.');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No file selected or permission denied.')),
+        const SnackBar(content: Text('No image selected or permission denied.')),
       );
     }
   }
@@ -147,7 +227,9 @@ class _RequestScreenState extends State<RequestScreen> {
       setState(() => _loading = false);
       return;
     }
-    final url = Uri.parse('http://192.168.210.148/RestEase/ClientSide/clientrequest.php');
+
+    final url = Uri.parse('http://192.168.142.227/RestEase/ClientSide/clientrequest.php');
+
 
     var request = http.MultipartRequest('POST', url);
     request.fields['type'] = _requestType ?? '';
