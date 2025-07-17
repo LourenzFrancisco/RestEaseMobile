@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'api_service.dart';
 import 'requests.dart'; // For FileWebViewScreen
 import 'package:url_launcher/url_launcher.dart';
+import 'payment.dart';
 
 // Replace RecordsCertificateScreen with a stateful version
 class RecordsCertificateScreen extends StatefulWidget {
@@ -517,14 +518,44 @@ class AcceptedRequestDetailScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 18),
                     // Uploaded File (with placeholder)
-                    Row(
+                    const SizedBox(height: 18),
+                    const Text(
+                      'Uploaded File',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        color: Color(0xFF20435C),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Color(0xFFD1D5DB),
+                          style: BorderStyle.solid,
+                          width: 1.5,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.white,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Icon(Icons.attach_file, color: Colors.grey[700]),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: fileUrl.isNotEmpty
-                              ? GestureDetector(
-                                  onTap: () async {
+                          Icon(Icons.insert_drive_file_outlined, size: 40, color: Color(0xFF20435C)),
+                          const SizedBox(height: 10),
+                          Text(
+                            fileName.isNotEmpty ? fileName : 'No file uploaded',
+                            style: const TextStyle(color: Color(0xFF6B7280), fontSize: 15),
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          if (fileUrl.isNotEmpty)
+                            ElevatedButton.icon(
+                              onPressed: () async {
                                     final isImage = fileName.toLowerCase().endsWith('.jpg') ||
                                         fileName.toLowerCase().endsWith('.jpeg') ||
                                         fileName.toLowerCase().endsWith('.png');
@@ -566,31 +597,35 @@ class AcceptedRequestDetailScreen extends StatelessWidget {
                                       }
                                     }
                                   },
-                                  child: const Text(
-                                    'View Uploaded File',
-                                    style: TextStyle(
-                                      color: Colors.blue,
-                                      decoration: TextDecoration.underline,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                )
-                              : const Text(
-                                  'No file uploaded',
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontStyle: FontStyle.italic,
+                              icon: const Icon(Icons.visibility, size: 20),
+                              label: const Text('View File'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFF20435C),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 18),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(6),
                                   ),
                                 ),
                         ),
                       ],
+                      ),
                     ),
                     const SizedBox(height: 18),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () {
-                          // TODO: Go to payment screen
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PaymentScreen(
+                                nicheId: request['niche_id']?.toString() ?? '',
+                                type: request['type']?.toString() ?? '',
+                                payeeName: request['informant_name']?.toString() ?? '',
+                              ),
+                            ),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF94B2CC),

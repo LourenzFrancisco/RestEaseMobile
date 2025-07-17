@@ -317,7 +317,7 @@ class PendingRequestDetailScreen extends StatelessWidget {
 
   void _cancelRequest(BuildContext context) async {
 
-    final url = Uri.parse('http://192.168.142.227/RestEase/ClientSide/cancel_client_request.php');
+    final url = Uri.parse('http://192.168.100.27/RestEase/ClientSide/cancel_client_request.php');
 
     try {
       final response = await http.post(url, body: {'request_id': request['id'].toString()});
@@ -509,14 +509,44 @@ class PendingRequestDetailScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 18),
                     // Uploaded File (with placeholder)
-                    Row(
+                    const SizedBox(height: 18),
+                    const Text(
+                      'Uploaded File',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        color: Color(0xFF20435C),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Color(0xFFD1D5DB),
+                          style: BorderStyle.solid,
+                          width: 1.5,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.white,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Icon(Icons.attach_file, color: Colors.grey[700]),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: fileUrl.isNotEmpty
-                              ? GestureDetector(
-                                  onTap: () async {
+                          Icon(Icons.insert_drive_file_outlined, size: 40, color: Color(0xFF20435C)),
+                          const SizedBox(height: 10),
+                          Text(
+                            fileName.isNotEmpty ? fileName : 'No file uploaded',
+                            style: const TextStyle(color: Color(0xFF6B7280), fontSize: 15),
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          if (fileUrl.isNotEmpty)
+                            ElevatedButton.icon(
+                              onPressed: () async {
                                     final isImage = fileName.toLowerCase().endsWith('.jpg') ||
                                         fileName.toLowerCase().endsWith('.jpeg') ||
                                         fileName.toLowerCase().endsWith('.png');
@@ -558,24 +588,19 @@ class PendingRequestDetailScreen extends StatelessWidget {
                                       }
                                     }
                                   },
-                                  child: const Text(
-                                    'View Uploaded File',
-                                    style: TextStyle(
-                                      color: Colors.blue,
-                                      decoration: TextDecoration.underline,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                )
-                              : const Text(
-                                  'No file uploaded',
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontStyle: FontStyle.italic,
+                              icon: const Icon(Icons.visibility, size: 20),
+                              label: const Text('View File'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFF20435C),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 18),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(6),
                                   ),
                                 ),
                         ),
                       ],
+                      ),
                     ),
                     const SizedBox(height: 18),
                     SizedBox(
@@ -613,7 +638,7 @@ class PendingRequestDetailScreen extends StatelessWidget {
 
 Future<List<Map<String, dynamic>>> fetchClientRequests(int userId) async {
 
-  final url = Uri.parse('http://192.168.142.227/RestEase/ClientSide/get_client_requests.php');
+  final url = Uri.parse('http://192.168.100.27/RestEase/ClientSide/get_client_requests.php');
 
 
   final response = await http.post(url, body: {'user_id': userId.toString()});

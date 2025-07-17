@@ -228,7 +228,7 @@ class _RequestScreenState extends State<RequestScreen> {
       return;
     }
 
-    final url = Uri.parse('http://192.168.142.227/RestEase/ClientSide/clientrequest.php');
+    final url = Uri.parse('http://192.168.100.27/RestEase/ClientSide/clientrequest.php');
 
 
     var request = http.MultipartRequest('POST', url);
@@ -601,31 +601,49 @@ class _RequestScreenState extends State<RequestScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        _deathCertificateFile != null
-                            ? 'Selected: ${_deathCertificateFile!.path.split('/').last}'
-                            : 'No file selected',
-                        style: const TextStyle(color: Color(0xFF6B7280)),
-                        overflow: TextOverflow.ellipsis,
+                GestureDetector(
+                  onTap: _pickDeathCertificate,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Color(0xFFD1D5DB),
+                        style: BorderStyle.solid,
+                        width: 1.5,
                       ),
+                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.white,
                     ),
-                    const SizedBox(width: 8),
-                    OutlinedButton.icon(
-                      onPressed: _pickDeathCertificate,
-                      icon: const Icon(Icons.attach_file, size: 20),
-                      label: const Text('Select File'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Color(0xFF20435C),
-                        side: const BorderSide(color: Color(0xFF20435C)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Icon(Icons.cloud_upload_outlined, size: 40, color: Color(0xFF20435C)),
+                        const SizedBox(height: 10),
+                        Text(
+                          _deathCertificateFile != null
+                              ? 'Selected: \'${_deathCertificateFile!.path.split('/').last}\''
+                              : 'Tap to upload death certificate',
+                          style: const TextStyle(color: Color(0xFF6B7280), fontSize: 15),
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
                         ),
-                      ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 18),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF20435C),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            'Choose File',
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 15),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
                 const SizedBox(height: 24),
                 SizedBox(

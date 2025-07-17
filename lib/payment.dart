@@ -1,11 +1,82 @@
 import 'package:flutter/material.dart';
 import 'navbar.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'dart:io';
 
 // ...existing code...
 
 // Add the PaymentScreen widget
-class PaymentScreen extends StatelessWidget {
-  const PaymentScreen({super.key});
+class PaymentScreen extends StatefulWidget {
+  final String nicheId;
+  final String type;
+  final String payeeName;
+  const PaymentScreen({super.key, required this.nicheId, required this.type, required this.payeeName});
+
+  @override
+  State<PaymentScreen> createState() => _PaymentScreenState();
+}
+
+class _PaymentScreenState extends State<PaymentScreen> {
+  File? _receiptFile;
+  String? _fileName;
+  bool _loading = false;
+
+  Future<bool> _requestStoragePermission() async {
+    if (await Permission.photos.isGranted || await Permission.storage.isGranted) {
+      return true;
+    }
+    var status = await Permission.photos.request();
+    if (status.isGranted) return true;
+    if (status.isPermanentlyDenied) {
+      await showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Permission Required'),
+          content: const Text('Storage permission is permanently denied. Please enable it in your phone\'s app settings.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+            TextButton(onPressed: () { openAppSettings(); Navigator.of(ctx).pop(); }, child: const Text('Open Settings')),
+          ],
+        ),
+      );
+      return false;
+    }
+    status = await Permission.storage.request();
+    if (status.isGranted) return true;
+    if (status.isPermanentlyDenied) {
+      await showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Permission Required'),
+          content: const Text('Storage permission is permanently denied. Please enable it in your phone\'s app settings.'),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+            TextButton(onPressed: () { openAppSettings(); Navigator.of(ctx).pop(); }, child: const Text('Open Settings')),
+          ],
+        ),
+      );
+      return false;
+    }
+    return false;
+  }
+
+  Future<void> _pickReceiptFile() async {
+    final granted = await _requestStoragePermission();
+    if (!granted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Storage permission is required to select a file.')));
+      return;
+    }
+    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf']);
+    if (result != null && result.files.single.path != null) {
+      setState(() {
+        _receiptFile = File(result.files.single.path!);
+        _fileName = result.files.single.name;
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No file selected.')));
+    }
+  }
 
   void _showPaymentSuccessDialog(BuildContext context) {
     showDialog(
@@ -111,7 +182,7 @@ class PaymentScreen extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    // Back arrow and title
+                    // Back arrow and title BELOW the logo
                     Row(
                       children: [
                         IconButton(
@@ -119,15 +190,12 @@ class PaymentScreen extends StatelessWidget {
                           onPressed: () => Navigator.pop(context),
                         ),
                         const SizedBox(width: 4),
-                        const Expanded(
-                          child: Text(
+                        const Text(
                             'Payment',
                             style: TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.w600,
                               color: Color(0xFF20435C),
-                            ),
-                            textAlign: TextAlign.center,
                           ),
                         ),
                       ],
@@ -144,7 +212,7 @@ class PaymentScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                       ),
-                      controller: TextEditingController(text: '1F-01FB'),
+                      controller: TextEditingController(text: widget.nicheId),
                     ),
                     const SizedBox(height: 12),
                     // Type
@@ -158,7 +226,7 @@ class PaymentScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                       ),
-                      controller: TextEditingController(text: 'Transfer'),
+                      controller: TextEditingController(text: widget.type),
                     ),
                     const SizedBox(height: 12),
                     // Payee Name
@@ -172,7 +240,7 @@ class PaymentScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                       ),
-                      controller: TextEditingController(text: 'Josephine Damdam Y.'),
+                      controller: TextEditingController(text: widget.payeeName),
                     ),
                     const SizedBox(height: 18),
                     // Upload Receipt label
@@ -185,38 +253,47 @@ class PaymentScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    // Upload Receipt box
-                    Container(
+                    // Modern Upload Receipt box
+                    GestureDetector(
+                      onTap: _pickReceiptFile,
+                      child: Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
                       decoration: BoxDecoration(
                         border: Border.all(
                           color: Color(0xFFD1D5DB),
                           style: BorderStyle.solid,
-                          width: 1,
+                            width: 1.5,
                         ),
-                        borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(12),
                         color: Colors.white,
-                        // Dashed border not natively supported, so use solid for now
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          const Text(
-                            'Upload Receipt here',
-                            style: TextStyle(color: Color(0xFF6B7280)),
-                          ),
-                          GestureDetector(
-                            onTap: () {},
-                            child: const Text(
-                              'choose files',
-                              style: TextStyle(
-                                color: Color(0xFF20435C),
-                                decoration: TextDecoration.underline,
+                            Icon(Icons.cloud_upload_outlined, size: 40, color: Color(0xFF20435C)),
+                            const SizedBox(height: 10),
+                            Text(
+                              _fileName != null ? 'Selected: $_fileName' : 'Tap to upload receipt file',
+                              style: const TextStyle(color: Color(0xFF6B7280), fontSize: 15),
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 18),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF20435C),
+                                borderRadius: BorderRadius.circular(6),
                               ),
+                            child: const Text(
+                                'Choose File',
+                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 15),
                             ),
                           ),
                         ],
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -224,7 +301,7 @@ class PaymentScreen extends StatelessWidget {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: _receiptFile == null || _loading ? null : () {
                           _showPaymentSuccessDialog(context);
                         },
                         style: ElevatedButton.styleFrom(
@@ -235,10 +312,9 @@ class PaymentScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(6),
                           ),
                         ),
-                        child: const Text(
-                          'Submit',
-                          style: TextStyle(fontSize: 18),
-                        ),
+                        child: _loading
+                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            : const Text('Submit', style: TextStyle(fontSize: 18)),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -246,7 +322,7 @@ class PaymentScreen extends StatelessWidget {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: _loading ? null : () => Navigator.pop(context),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFE5E7EB),
                           foregroundColor: Colors.black54,

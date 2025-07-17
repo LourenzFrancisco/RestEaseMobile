@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 Future<Map<String, dynamic>> loginUser(String email, String password) async {
 
-  final url = Uri.parse('http://192.168.142.227/RestEase/api/api_login.php'); // DITO AY KUNG ANONG IPV4 NG LAPTOP MO
+  final url = Uri.parse('http://192.168.100.27/RestEase/api/api_login.php'); // DITO AY KUNG ANONG IPV4 NG LAPTOP MO
 
   final response = await http.post(
     url,
@@ -31,7 +31,7 @@ Future<Map<String, dynamic>> registerUser({
   required bool terms,
 }) async {
 
-  final url = Uri.parse('http://192.168.142.227/RestEase/api/api_register.php');  // DITO AY KUNG ANONG IPV4 NG LAPTOP MO
+  final url = Uri.parse('http://192.168.100.27/RestEase/api/api_register.php');  // DITO AY KUNG ANONG IPV4 NG LAPTOP MO
 
   final response = await http.post(
     url,
@@ -57,7 +57,7 @@ Future<Map<String, dynamic>> registerUser({
 
 Future<List<Map<String, dynamic>>> fetchClientRequests(int userId) async {
 
-  final url = Uri.parse('http://192.168.142.227/RestEase/ClientSide/get_client_requests.php');
+  final url = Uri.parse('http://192.168.100.27/RestEase/ClientSide/get_client_requests.php');
 
   final response = await http.post(url, body: {'user_id': userId.toString()});
   if (response.statusCode == 200) {
@@ -69,7 +69,7 @@ Future<List<Map<String, dynamic>>> fetchClientRequests(int userId) async {
 }
 
 Future<List<Map<String, dynamic>>> fetchAcceptedRequests(int userId) async {
-  final url = Uri.parse('http://192.168.142.227/RestEase/ClientSide/get_accepted_requests.php');
+  final url = Uri.parse('http://192.168.100.27/RestEase/ClientSide/get_accepted_requests.php');
   final response = await http.post(url, body: {'user_id': userId.toString()});
   if (response.statusCode == 200) {
     final data = jsonDecode(response.body);

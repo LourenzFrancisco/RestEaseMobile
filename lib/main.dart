@@ -4,6 +4,9 @@ import 'navbar.dart';
 import 'forgotpass.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 
 
 void main() {
@@ -438,7 +441,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Terms & Condition'),
-        content: const Text('Your terms and conditions go here.'),
+        content: const SingleChildScrollView(
+          child: Text(
+            'To proceed with managing cemetery records or requesting certificates through RestEase, you must first agree to our User Terms. By tapping "I AGREE", you confirm that you have read and accepted the responsibilities outlined below.\n\n'
+            'As a User, you agree and confirm that:\n\n'
+            '• All information you provide (such as deceased details, applicant name, and contact information) is accurate and complete;\n'
+            '• You are authorized to request records or certificates for the deceased individuals listed;\n'
+            '• Your use of the system is solely for legitimate and respectful purposes;\n'
+            '• You acknowledge that issuance of certificates (e.g., interment, renewal) is subject to review and validation by the Municipal Planning and Development Office (MPDO);\n'
+            '• You are responsible for complying with all applicable local regulations and requirements related to cemetery management;\n'
+            '• Any false or misleading information may result in rejection of your request and possible account suspension.\n\n'
+            'Before submitting any application or update, you must ensure that all required documents are uploaded and legible, and that you have reviewed your entries for accuracy.'
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -789,27 +804,170 @@ class MapHomeScreen extends StatefulWidget {
 
 class _MapHomeScreenState extends State<MapHomeScreen> {
   late final WebViewController _controller;
+  bool _webViewLoaded = false;
+  List<Map<String, dynamic>> _niches = [];
+  List<Map<String, dynamic>> _searchResults = [];
+  final TextEditingController _searchController = TextEditingController();
+  bool _showSearchBar = false;
+  bool _searching = false;
 
   @override
   void initState() {
     super.initState();
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse('http://192.168.142.227/RestEase/ClientSide/MapOnly.html'));
+      ..setNavigationDelegate(NavigationDelegate(
+        onPageFinished: (url) {
+          setState(() {
+            _webViewLoaded = true;
+          });
+        },
+      ))
+      ..loadRequest(Uri.parse('http://192.168.100.27/RestEase/ClientSide/ClientMap.php?embed=1'));
+    _loadNiches();
+  }
+
+  Future<void> _loadNiches() async {
+    final response = await http.get(Uri.parse('http://192.168.100.27/RestEase/ClientSide/get_niches.php'));
+    if (response.statusCode == 200) {
+      final jsonData = json.decode(response.body);
+      setState(() {
+        _niches = (jsonData['niches'] as List)
+            .map((e) => e as Map<String, dynamic>)
+            .toList();
+      });
+    } else {
+      // Handle error
+      setState(() {
+        _niches = [];
+      });
+    }
+  }
+
+  void _onSearchChanged(String value) {
+    setState(() {
+      _searchResults = _niches
+          .where((niche) => (niche['Name'] ?? '').toString().toLowerCase().contains(value.toLowerCase()))
+          .toList();
+    });
+  }
+
+  void _onResultTap(Map<String, dynamic> niche) async {
+    setState(() {
+      _showSearchBar = false;
+      _searchController.clear();
+      _searchResults = [];
+    });
+    if (_webViewLoaded) {
+      await _controller.runJavaScript("window.focusNiche && window.focusNiche('${niche['nicheID']}')");
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // Replace the title text with your logo image
         title: Image.asset(
           'assets/logo.png',
           height: 36,
         ),
-        backgroundColor: const Color.fromARGB(255, 167, 194, 213), // Optional: match your theme
+        backgroundColor: const Color.fromARGB(255, 167, 194, 213),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search, color: Color(0xFF20435C)),
+            onPressed: () {
+              setState(() {
+                _showSearchBar = !_showSearchBar;
+                _searchResults = [];
+                _searchController.clear();
+              });
+            },
+          ),
+        ],
       ),
-      body: WebViewWidget(controller: _controller),
+      body: Stack(
+        children: [
+          WebViewWidget(controller: _controller),
+          if (_showSearchBar)
+            Positioned(
+              top: 20,
+              left: 20,
+              right: 20,
+              child: Material(
+                elevation: 8,
+                borderRadius: BorderRadius.circular(24),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.search, color: Color(0xFF20435C)),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: TextField(
+                                controller: _searchController,
+                                autofocus: true,
+                                decoration: const InputDecoration(
+                                  hintText: 'Search by name...',
+                                  border: InputBorder.none,
+                                ),
+                                onChanged: _onSearchChanged,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              onPressed: () {
+                                setState(() {
+                                  _showSearchBar = false;
+                                  _searchController.clear();
+                                  _searchResults = [];
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (_searchController.text.isNotEmpty && _searchResults.isNotEmpty)
+                        Container(
+                          constraints: const BoxConstraints(maxHeight: 250),
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: _searchResults.length,
+                            itemBuilder: (context, index) {
+                              final result = _searchResults[index];
+                              return ListTile(
+                                title: Text(result['Name'] ?? ''),
+                                subtitle: Text(result['nicheID'] ?? ''),
+                                onTap: () => _onResultTap(result),
+                              );
+                            },
+                          ),
+                        ),
+                      if (_searchController.text.isNotEmpty && _searchResults.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Text('No results found.'),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
       bottomNavigationBar: const BottomNavBar(currentIndex: 0),
     );
   }
