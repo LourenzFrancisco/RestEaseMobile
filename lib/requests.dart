@@ -26,6 +26,7 @@ class _RequestScreenState extends State<RequestScreen> {
   final _dodController = TextEditingController();
   final _residencyController = TextEditingController();
   final _informantController = TextEditingController();
+  final _nicheIdController = TextEditingController();
 
   String? _requestType; // null by default
   bool _loading = false;
@@ -41,6 +42,7 @@ class _RequestScreenState extends State<RequestScreen> {
     _dodController.dispose();
     _residencyController.dispose();
     _informantController.dispose();
+    _nicheIdController.dispose();
     super.dispose();
   }
 
@@ -243,6 +245,10 @@ class _RequestScreenState extends State<RequestScreen> {
     request.fields['informant_name'] = _informantController.text;
     request.fields['user_id'] = userId.toString();
 
+    if (_requestType == 'Transfer' || _requestType == 'Exhumation') {
+      request.fields['niche_id'] = _nicheIdController.text;
+    }
+
     if (_deathCertificateFile != null) {
       request.files.add(await http.MultipartFile.fromPath(
         'file_upload',
@@ -301,6 +307,12 @@ class _RequestScreenState extends State<RequestScreen> {
     String? lastNameError = _validateNameField(_lastNameController.text, 'Last Name');
     String? informantError = _validateNameField(_informantController.text, 'Informant Name');
     String? ageError = _validateAgeField(_ageController.text);
+    String? nicheIdError;
+    if (_requestType == 'Transfer' || _requestType == 'Exhumation') {
+      if (_nicheIdController.text.trim().isEmpty) {
+        nicheIdError = 'Niche ID is required for this request type';
+      }
+    }
 
     if (_requestType == null ||
         firstNameError != null ||
@@ -311,7 +323,8 @@ class _RequestScreenState extends State<RequestScreen> {
         _dobController.text.trim().isEmpty ||
         _dodController.text.trim().isEmpty ||
         _residencyController.text.trim().isEmpty ||
-        _deathCertificateFile == null) {
+        _deathCertificateFile == null ||
+        nicheIdError != null) {
       
       String errorMessage = 'Please fix the following errors:\n';
       List<String> errors = [];
@@ -326,6 +339,7 @@ class _RequestScreenState extends State<RequestScreen> {
       if (_dodController.text.trim().isEmpty) errors.add('- Date of Death is required');
       if (_residencyController.text.trim().isEmpty) errors.add('- Residency is required');
       if (_deathCertificateFile == null) errors.add('- Death certificate file is required');
+      if (nicheIdError != null) errors.add('- $nicheIdError');
       
       errorMessage += errors.join('\n');
       
@@ -426,8 +440,8 @@ class _RequestScreenState extends State<RequestScreen> {
                     ),
                     items: const [
                       DropdownMenuItem(value: null, child: Text('Select Type')),
-                      DropdownMenuItem(value: 'Transfer', child: Text('Transfer')),
                       DropdownMenuItem(value: 'Interment', child: Text('Internment')),
+                       DropdownMenuItem(value: 'Transfer', child: Text('Transfer')),
                       DropdownMenuItem(value: 'Exhumation', child: Text('Exhumation')),
                     ],
                     onChanged: (v) {
@@ -438,6 +452,21 @@ class _RequestScreenState extends State<RequestScreen> {
                     validator: (value) => value == null ? 'Please select a type' : null,
                   ),
                 ),
+                if (_requestType == 'Transfer' || _requestType == 'Exhumation') ...[
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _nicheIdController,
+                    decoration: InputDecoration(
+                      labelText: 'Niche ID',
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      hintText: 'Enter Niche ID for this request',
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 24),
                 // Replace the _RequestField widgets with editable TextFields
                 const Text(

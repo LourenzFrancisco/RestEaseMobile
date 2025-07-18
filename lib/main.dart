@@ -169,12 +169,13 @@ Future<void> _login() async {
   try {
     final result = await loginUser(email, password);
     if (result['success'] == true) {
-      // Save user_id to SharedPreferences
+      // Save user_id and user_email to SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('user_id', result['user_id']);
+      await prefs.setString('user_email', email); // <-- Save email
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const MapHomeScreen()), // <-- Go to MapHomeScreen after login
+        MaterialPageRoute(builder: (context) => const MapHomeScreen()),
       );
     } else {
       setState(() {

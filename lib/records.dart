@@ -421,6 +421,21 @@ class AcceptedRequestDetailScreen extends StatelessWidget {
                       ),
                       controller: TextEditingController(text: request['type'] ?? ''),
                     ),
+                    if ((request['type'] == 'Transfer' || request['type'] == 'Exhumation') && (request['niche_id'] != null && request['niche_id'].toString().isNotEmpty)) ...[
+                      const SizedBox(height: 12),
+                      TextField(
+                        enabled: false,
+                        decoration: InputDecoration(
+                          labelText: 'Niche ID',
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                        controller: TextEditingController(text: request['niche_id'] ?? ''),
+                      ),
+                    ],
                     const SizedBox(height: 18),
                     const Text(
                       'Deceased  Information',
