@@ -14,3 +14,5 @@ class ApiConfig {
     await prefs.setString(_key, url);
   }
 }
+
+// Make sure all API calls use ApiConfig.getApiBaseUrl() dynamically
