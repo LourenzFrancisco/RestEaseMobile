@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'config.dart';
 
 import 'main.dart'; // Your LoginScreen class
 // Make sure VerifyCodeScreen is already defined below or imported
@@ -32,9 +33,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     final email = _emailController.text.trim();
 
     try {
+      final baseUrl = await ApiConfig.getApiBaseUrl();
       final response = await http.post(
-
-        Uri.parse('http://192.168.`100`.27/RestEase/api/send_reset_code_api.php'), // 🔁 Replace with your LAN IP + PHP path
+        Uri.parse('$baseUrl/api/send_reset_code_api.php'), // 🔁 Replace with your LAN IP + PHP path
 
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email}),
@@ -248,9 +249,9 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
     });
 
     try {
+      final baseUrl = await ApiConfig.getApiBaseUrl();
       final response = await http.post(
-
-        Uri.parse('http://192.168.100.27/RestEase/api/verify_code_api.php'),
+        Uri.parse('$baseUrl/api/verify_code_api.php'),
 
         headers: {'Accept': 'application/json'},
         body: {
@@ -300,9 +301,9 @@ class _VerifyCodeScreenState extends State<VerifyCodeScreen> {
     });
 
     try {
+      final baseUrl = await ApiConfig.getApiBaseUrl();
       final response = await http.post(
-
-        Uri.parse('http://192.168.100.27/RestEase/api/send_reset_code_api.php'),
+        Uri.parse('$baseUrl/api/send_reset_code_api.php'),
 
         headers: {'Accept': 'application/json'},
         body: {'email': email},
@@ -532,8 +533,9 @@ Future<void> _resetPassword() async {
   });
 
   try {
+    final baseUrl = await ApiConfig.getApiBaseUrl();
     final response = await http.post(
-      Uri.parse('http://192.168.100.27/RestEase/api/CreatePassword_api.php'),
+      Uri.parse('$baseUrl/api/CreatePassword_api.php'),
 
       headers: {'Accept': 'application/json'},
       body: {

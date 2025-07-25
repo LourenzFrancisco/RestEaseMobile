@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
 // import 'api_service.dart';
 import 'requests.dart';
+import 'config.dart';
 
 // ...existing code...
 
@@ -316,8 +317,8 @@ class PendingRequestDetailScreen extends StatelessWidget {
   }
 
   void _cancelRequest(BuildContext context) async {
-
-    final url = Uri.parse('http://192.168.100.27/RestEase/ClientSide/cancel_client_request.php');
+    final baseUrl = await ApiConfig.getApiBaseUrl();
+    final url = Uri.parse('$baseUrl/ClientSide/cancel_client_request.php');
 
     try {
       final response = await http.post(url, body: {'request_id': request['id'].toString()});
@@ -652,8 +653,8 @@ class PendingRequestDetailScreen extends StatelessWidget {
 }
 
 Future<List<Map<String, dynamic>>> fetchClientRequests(int userId) async {
-
-  final url = Uri.parse('http://192.168.100.27/RestEase/ClientSide/get_client_requests.php');
+  final baseUrl = await ApiConfig.getApiBaseUrl();
+  final url = Uri.parse('$baseUrl/ClientSide/get_client_requests.php');
 
 
   final response = await http.post(url, body: {'user_id': userId.toString()});

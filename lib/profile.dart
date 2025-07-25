@@ -8,6 +8,7 @@ import 'records.dart'; // <-- Add this
 import 'about_us.dart'; // <-- Add this
 import 'user_profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'config.dart';
 
 // ...existing code...
 // Add the ProfileScreen widget
@@ -27,8 +28,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<UserProfile> fetchUserProfile(String email) async {
+    final baseUrl = await ApiConfig.getApiBaseUrl();
     final response = await http.get(
-      Uri.parse('http://192.168.100.27/RestEase/api/get_profile.php?email=$email'),
+      Uri.parse('$baseUrl/api/get_profile.php?email=$email'),
     );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);

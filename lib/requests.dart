@@ -9,6 +9,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'config.dart';
 
 class RequestScreen extends StatefulWidget {
   const RequestScreen({super.key});
@@ -230,7 +231,8 @@ class _RequestScreenState extends State<RequestScreen> {
       return;
     }
 
-    final url = Uri.parse('http://192.168.100.27/RestEase/ClientSide/clientrequest.php');
+    final baseUrl = await ApiConfig.getApiBaseUrl();
+    final url = Uri.parse('$baseUrl/ClientSide/clientrequest.php');
 
 
     var request = http.MultipartRequest('POST', url);

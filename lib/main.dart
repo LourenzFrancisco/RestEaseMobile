@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'config.dart';
 
 
 void main() {
@@ -82,8 +83,62 @@ class _SplashScreenState extends State<SplashScreen> {
 }
 
 // WelcomeImageScreen widget
-class WelcomeImageScreen extends StatelessWidget {
+class WelcomeImageScreen extends StatefulWidget {
   const WelcomeImageScreen({super.key});
+
+  @override
+  State<WelcomeImageScreen> createState() => _WelcomeImageScreenState();
+}
+
+class _WelcomeImageScreenState extends State<WelcomeImageScreen> {
+  String? _apiBaseUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadApiBaseUrl();
+  }
+
+  Future<void> _loadApiBaseUrl() async {
+    final url = await ApiConfig.getApiBaseUrl();
+    setState(() {
+      _apiBaseUrl = url;
+    });
+  }
+
+  Future<void> _showChangeApiDialog() async {
+    final controller = TextEditingController(text: _apiBaseUrl ?? '');
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Set API Base URL'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            labelText: 'API Base URL',
+            hintText: 'http://192.168.x.x/RestEase',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    if (result != null && result.isNotEmpty) {
+      await ApiConfig.setApiBaseUrl(result);
+      await _loadApiBaseUrl();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('API Base URL updated!')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -102,8 +157,28 @@ class WelcomeImageScreen extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.only(left: 32, right: 32, bottom: 64),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  // Change API Base URL button (left side)
+                  SizedBox(
+                    height: 40,
+                    child: OutlinedButton.icon(
+                      onPressed: _showChangeApiDialog,
+                      icon: const Icon(Icons.settings_ethernet, color: Color(0xFF20435C)),
+                      label: const Text(
+                        'Set IP',
+                        style: TextStyle(color: Color(0xFF20435C)),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFF20435C)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        backgroundColor: Colors.white,
+                      ),
+                    ),
+                  ),
+                  // Get Started button (right side)
                   SizedBox(
                     width: 170,
                     height: 40,
@@ -811,6 +886,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
   final TextEditingController _searchController = TextEditingController();
   bool _showSearchBar = false;
   bool _searching = false;
+  String? _apiBaseUrl;
 
   @override
   void initState() {
@@ -823,13 +899,23 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
             _webViewLoaded = true;
           });
         },
-      ))
-      ..loadRequest(Uri.parse('http://192.168.100.27/RestEase/ClientSide/ClientMap.php?embed=1'));
+      ));
+    _loadApiBaseUrl();
+  }
+
+  Future<void> _loadApiBaseUrl() async {
+    final url = await ApiConfig.getApiBaseUrl();
+    setState(() {
+      _apiBaseUrl = url;
+    });
+    // Reload niches and webview with new base URL
+    _controller.loadRequest(Uri.parse('$_apiBaseUrl/ClientSide/ClientMap.php?embed=1'));
     _loadNiches();
   }
 
   Future<void> _loadNiches() async {
-    final response = await http.get(Uri.parse('http://192.168.100.27/RestEase/ClientSide/get_niches.php'));
+    if (_apiBaseUrl == null) return;
+    final response = await http.get(Uri.parse('$_apiBaseUrl/ClientSide/get_niches.php'));
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
       setState(() {
@@ -864,10 +950,38 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
     }
   }
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
+  Future<void> _showChangeApiDialog() async {
+    final controller = TextEditingController(text: _apiBaseUrl ?? '');
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Set API Base URL'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            labelText: 'API Base URL',
+            hintText: 'http://192.168.x.x/RestEase',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    if (result != null && result.isNotEmpty) {
+      await ApiConfig.setApiBaseUrl(result);
+      await _loadApiBaseUrl();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('API Base URL updated!')),
+      );
+    }
   }
 
   @override
@@ -890,11 +1004,17 @@ class _MapHomeScreenState extends State<MapHomeScreen> {
               });
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.settings_ethernet, color: Color(0xFF20435C)),
+            tooltip: 'Change API Base URL',
+            onPressed: _showChangeApiDialog,
+          ),
         ],
       ),
       body: Stack(
         children: [
-          WebViewWidget(controller: _controller),
+          if (_apiBaseUrl != null)
+            WebViewWidget(controller: _controller),
           if (_showSearchBar)
             Positioned(
               top: 20,
