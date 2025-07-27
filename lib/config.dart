@@ -2,7 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiConfig {
   static const _key = 'apiBaseUrl';
-  static String _defaultUrl = 'http://192.168.100.27/RestEase';
+  static String _defaultUrl = 'http://192.168.198.240/RestEase';
 
   static Future<String> getApiBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();

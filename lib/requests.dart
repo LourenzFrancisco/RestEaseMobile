@@ -32,6 +32,7 @@ class _RequestScreenState extends State<RequestScreen> {
   String? _requestType; // null by default
   bool _loading = false;
   File? _deathCertificateFile;
+  final Map<String, String?> _fieldErrors = {};
 
   @override
   void dispose() {
@@ -302,13 +303,38 @@ class _RequestScreenState extends State<RequestScreen> {
     return null;
   }
 
+  // Add this method to calculate age
+  void _updateAgeFromDates() {
+    if (_dobController.text.isEmpty || _dodController.text.isEmpty) {
+      _ageController.text = '';
+      return;
+    }
+    try {
+      final dob = DateTime.parse(_dobController.text);
+      final dod = DateTime.parse(_dodController.text);
+      int age = dod.year - dob.year;
+      if (dod.month < dob.month || (dod.month == dob.month && dod.day < dob.day)) {
+        age--;
+      }
+      if (age < 0) age = 0;
+      _ageController.text = age.toString();
+    } catch (_) {
+      _ageController.text = '';
+    }
+  }
+
   Future<void> _confirmAndSubmitRequest() async {
-    // Validate all fields
+    setState(() => _fieldErrors.clear());
     String? firstNameError = _validateNameField(_firstNameController.text, 'First Name');
     String? middleNameError = _validateNameField(_middleNameController.text, 'Middle Name');
     String? lastNameError = _validateNameField(_lastNameController.text, 'Last Name');
     String? informantError = _validateNameField(_informantController.text, 'Informant Name');
     String? ageError = _validateAgeField(_ageController.text);
+    String? dobError = _dobController.text.trim().isEmpty ? 'Date of Birth is required' : null;
+    String? dodError = _dodController.text.trim().isEmpty ? 'Date of Death is required' : null;
+    String? residencyError = _residencyController.text.trim().isEmpty ? 'Residency is required' : null;
+    String? fileError = _deathCertificateFile == null ? 'Death certificate file is required' : null;
+    String? typeError = _requestType == null ? 'Select a request type' : null;
     String? nicheIdError;
     if (_requestType == 'Transfer' || _requestType == 'Exhumation') {
       if (_nicheIdController.text.trim().isEmpty) {
@@ -316,44 +342,33 @@ class _RequestScreenState extends State<RequestScreen> {
       }
     }
 
-    if (_requestType == null ||
-        firstNameError != null ||
-        middleNameError != null ||
-        lastNameError != null ||
-        informantError != null ||
-        ageError != null ||
-        _dobController.text.trim().isEmpty ||
-        _dodController.text.trim().isEmpty ||
-        _residencyController.text.trim().isEmpty ||
-        _deathCertificateFile == null ||
-        nicheIdError != null) {
-      
-      String errorMessage = 'Please fix the following errors:\n';
-      List<String> errors = [];
-      
-      if (_requestType == null) errors.add('- Select a request type');
-      if (firstNameError != null) errors.add('- $firstNameError');
-      if (middleNameError != null) errors.add('- $middleNameError');
-      if (lastNameError != null) errors.add('- $lastNameError');
-      if (informantError != null) errors.add('- $informantError');
-      if (ageError != null) errors.add('- $ageError');
-      if (_dobController.text.trim().isEmpty) errors.add('- Date of Birth is required');
-      if (_dodController.text.trim().isEmpty) errors.add('- Date of Death is required');
-      if (_residencyController.text.trim().isEmpty) errors.add('- Residency is required');
-      if (_deathCertificateFile == null) errors.add('- Death certificate file is required');
-      if (nicheIdError != null) errors.add('- $nicheIdError');
-      
-      errorMessage += errors.join('\n');
-      
+    setState(() {
+      _fieldErrors['type'] = typeError;
+      _fieldErrors['firstName'] = firstNameError;
+      _fieldErrors['middleName'] = middleNameError;
+      _fieldErrors['lastName'] = lastNameError;
+      _fieldErrors['informant'] = informantError;
+      _fieldErrors['age'] = ageError;
+      _fieldErrors['dob'] = dobError;
+      _fieldErrors['dod'] = dodError;
+      _fieldErrors['residency'] = residencyError;
+      _fieldErrors['file'] = fileError;
+      _fieldErrors['nicheId'] = nicheIdError;
+    });
+
+    bool hasError = _fieldErrors.values.any((e) => e != null);
+
+    if (hasError) {
+      // Optionally, scroll to first error field
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(errorMessage),
-          duration: const Duration(seconds: 4),
+        const SnackBar(
+          content: Text('Please fix the highlighted errors.'),
+          duration: Duration(seconds: 2),
         ),
       );
       return;
     }
-    
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -431,7 +446,13 @@ class _RequestScreenState extends State<RequestScreen> {
                   decoration: BoxDecoration(
                     color: const Color(0xFFF5F6FA),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Color(0xFFE0E0E0)),
+                    border: Border.all(
+                      color: _fieldErrors['type'] != null ? Colors.red : const Color(0xFFE0E0E0),
+                      width: 1.5,
+                    ),
+                    boxShadow: _fieldErrors['type'] != null
+                        ? [BoxShadow(color: Colors.red.withOpacity(0.3), blurRadius: 8, spreadRadius: 1)]
+                        : [],
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
                   child: DropdownButtonFormField<String>(
@@ -443,17 +464,22 @@ class _RequestScreenState extends State<RequestScreen> {
                     items: const [
                       DropdownMenuItem(value: null, child: Text('Select Type')),
                       DropdownMenuItem(value: 'Interment', child: Text('Internment')),
-                       DropdownMenuItem(value: 'Transfer', child: Text('Transfer')),
+                      DropdownMenuItem(value: 'Transfer', child: Text('Transfer')),
                       DropdownMenuItem(value: 'Exhumation', child: Text('Exhumation')),
                     ],
                     onChanged: (v) {
                       setState(() {
                         _requestType = v;
+                        _fieldErrors['type'] = null;
                       });
                     },
-                    validator: (value) => value == null ? 'Please select a type' : null,
                   ),
                 ),
+                if (_fieldErrors['type'] != null)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4, top: 2, bottom: 8),
+                    child: Text(_fieldErrors['type']!, style: const TextStyle(color: Colors.red, fontSize: 13)),
+                  ),
                 if (_requestType == 'Transfer' || _requestType == 'Exhumation') ...[
                   const SizedBox(height: 16),
                   TextField(
@@ -464,9 +490,17 @@ class _RequestScreenState extends State<RequestScreen> {
                       fillColor: Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(6),
+                        borderSide: BorderSide(
+                          color: _fieldErrors['nicheId'] != null ? Colors.red : Colors.grey,
+                          width: 1.5,
+                        ),
                       ),
                       hintText: 'Enter Niche ID for this request',
+                      errorText: _fieldErrors['nicheId'],
                     ),
+                    onChanged: (_) {
+                      setState(() => _fieldErrors['nicheId'] = null);
+                    },
                   ),
                 ],
                 const SizedBox(height: 24),
@@ -491,8 +525,16 @@ class _RequestScreenState extends State<RequestScreen> {
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(
+                        color: _fieldErrors['firstName'] != null ? Colors.red : Colors.grey,
+                        width: 1.5,
+                      ),
                     ),
+                    errorText: _fieldErrors['firstName'],
                   ),
+                  onChanged: (_) {
+                    setState(() => _fieldErrors['firstName'] = null);
+                  },
                 ),
                 const SizedBox(height: 12),
                 TextField(
@@ -506,8 +548,16 @@ class _RequestScreenState extends State<RequestScreen> {
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(
+                        color: _fieldErrors['middleName'] != null ? Colors.red : Colors.grey,
+                        width: 1.5,
+                      ),
                     ),
+                    errorText: _fieldErrors['middleName'],
                   ),
+                  onChanged: (_) {
+                    setState(() => _fieldErrors['middleName'] = null);
+                  },
                 ),
                 const SizedBox(height: 12),
                 TextField(
@@ -521,25 +571,16 @@ class _RequestScreenState extends State<RequestScreen> {
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(
+                        color: _fieldErrors['lastName'] != null ? Colors.red : Colors.grey,
+                        width: 1.5,
+                      ),
                     ),
+                    errorText: _fieldErrors['lastName'],
                   ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _ageController,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(3),
-                  ],
-                  decoration: InputDecoration(
-                    labelText: 'Age',
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                  ),
-                  keyboardType: TextInputType.number,
+                  onChanged: (_) {
+                    setState(() => _fieldErrors['lastName'] = null);
+                  },
                 ),
                 const SizedBox(height: 12),
                 TextField(
@@ -551,7 +592,12 @@ class _RequestScreenState extends State<RequestScreen> {
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(
+                        color: _fieldErrors['dob'] != null ? Colors.red : Colors.grey,
+                        width: 1.5,
+                      ),
                     ),
+                    errorText: _fieldErrors['dob'],
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.calendar_today),
                       onPressed: () async {
@@ -563,6 +609,10 @@ class _RequestScreenState extends State<RequestScreen> {
                         );
                         if (picked != null) {
                           _dobController.text = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+                          setState(() {
+                            _fieldErrors['dob'] = null;
+                            _updateAgeFromDates();
+                          });
                         }
                       },
                     ),
@@ -578,7 +628,12 @@ class _RequestScreenState extends State<RequestScreen> {
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(
+                        color: _fieldErrors['dod'] != null ? Colors.red : Colors.grey,
+                        width: 1.5,
+                      ),
                     ),
+                    errorText: _fieldErrors['dod'],
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.calendar_today),
                       onPressed: () async {
@@ -590,10 +645,38 @@ class _RequestScreenState extends State<RequestScreen> {
                         );
                         if (picked != null) {
                           _dodController.text = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+                          setState(() {
+                            _fieldErrors['dod'] = null;
+                            _updateAgeFromDates();
+                          });
                         }
                       },
                     ),
                   ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _ageController,
+                  readOnly: true,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(3),
+                  ],
+                  decoration: InputDecoration(
+                    labelText: 'Age',
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(
+                        color: _fieldErrors['age'] != null ? Colors.red : Colors.grey,
+                        width: 1.5,
+                      ),
+                    ),
+                    errorText: _fieldErrors['age'],
+                  ),
+                  keyboardType: TextInputType.number,
+                  // onChanged removed since field is now readOnly
                 ),
                 const SizedBox(height: 12),
                 TextField(
@@ -604,8 +687,16 @@ class _RequestScreenState extends State<RequestScreen> {
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(
+                        color: _fieldErrors['residency'] != null ? Colors.red : Colors.grey,
+                        width: 1.5,
+                      ),
                     ),
+                    errorText: _fieldErrors['residency'],
                   ),
+                  onChanged: (_) {
+                    setState(() => _fieldErrors['residency'] = null);
+                  },
                 ),
                 const SizedBox(height: 12),
                 TextField(
@@ -619,8 +710,16 @@ class _RequestScreenState extends State<RequestScreen> {
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(6),
+                      borderSide: BorderSide(
+                        color: _fieldErrors['informant'] != null ? Colors.red : Colors.grey,
+                        width: 1.5,
+                      ),
                     ),
+                    errorText: _fieldErrors['informant'],
                   ),
+                  onChanged: (_) {
+                    setState(() => _fieldErrors['informant'] = null);
+                  },
                 ),
                 const SizedBox(height: 20),
                 const Text(
@@ -639,12 +738,15 @@ class _RequestScreenState extends State<RequestScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: Color(0xFFD1D5DB),
+                        color: _fieldErrors['file'] != null ? Colors.red : const Color(0xFFD1D5DB),
                         style: BorderStyle.solid,
                         width: 1.5,
                       ),
                       borderRadius: BorderRadius.circular(12),
                       color: Colors.white,
+                      boxShadow: _fieldErrors['file'] != null
+                          ? [BoxShadow(color: Colors.red.withOpacity(0.3), blurRadius: 8, spreadRadius: 1)]
+                          : [],
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -657,8 +759,6 @@ class _RequestScreenState extends State<RequestScreen> {
                               ? 'Selected: \'${_deathCertificateFile!.path.split('/').last}\''
                               : 'Tap to upload death certificate',
                           style: const TextStyle(color: Color(0xFF6B7280), fontSize: 15),
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 8),
                         Container(
@@ -676,6 +776,11 @@ class _RequestScreenState extends State<RequestScreen> {
                     ),
                   ),
                 ),
+                if (_fieldErrors['file'] != null)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4, top: 2, bottom: 8),
+                    child: Text(_fieldErrors['file']!, style: const TextStyle(color: Colors.red, fontSize: 13)),
+                  ),
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
